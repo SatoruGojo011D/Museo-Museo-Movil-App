@@ -1,0 +1,275 @@
+Proyecto: Museo de los Museos
+El presente caso de estudio aborda el desarrollo de una aplicación móvil para Museo de los Museos, organización dedicada
+a la educación museológica, la investigación aplicada, la formación profesional y el desarrollo de audiencias. Actualmente, la
+información de cursos, servicios, productos museológicos y museos virtuales se encuentra distribuida en distintos canales,
+lo que dificulta su consulta y trazabilidad.
+Para resolver esta problemática, se propone una plataforma móvil que reúna dos necesidades del negocio: la oferta de
+cursos y productos —como publicaciones, materiales de conservación y artículos museológicos— y el Mapa de Museos
+Virtuales de Iberoamérica. La solución permitirá explorar museos y sus visitas virtuales, consultar el catálogo, solicitar
+compras y estimar costos de envío con parámetros ficticios.
+La gestión de la información museológica y comercial contempla los siguientes aspectos:
+• Catálogo de productos y cursos: centralizar recursos, precios ficticios, imágenes, disponibilidad y solicitudes de compra
+o información.
+• Investigación de museos virtuales: mantener fichas descriptivas, país, ubicación y enlaces a experiencias digitales,
+usando registros de demostración.
+• Cálculo de envíos: estimar montos nacionales e internacionales mediante reglas simuladas, sin integrar servicios reales
+de courier.
+• Integración tecnológica: consumir servicios REST desde Android mediante Retrofit, con backend Spring Boot y caché
+local en Room/SQLite.
+• Propósito académico: desarrollar y evaluar navegación, formularios, cámara, mapas, lectura QR, animaciones,
+persistencia y notificaciones push en un MVP.
+Roles de usuarios
+1. Administrador (un perfil académico de prueba)
+Gestiona productos, cursos, solicitudes, información publicada y el estado general de la aplicación. Puede revisar y
+actualizar registros museológicos, controlar contenidos y generar notificaciones informativas. Para el MVP se utilizarán
+credenciales ficticias, nunca cuentas institucionales reales.
+2. Investigador (un perfil académico de prueba)
+Registra y revisa museos virtuales de Iberoamérica, sus ubicaciones geográficas, descripciones y enlaces. Puede utilizar la
+cámara y códigos QR para vincular contenidos museológicos a sus fichas. Sus funciones se limitan a la información de
+investigación que le corresponde.
+3. Cliente (pueden existir varios perfiles de prueba)
+Consulta museos virtuales, guarda favoritos, explora cursos y productos, escanea códigos QR y realiza solicitudes. Puede
+calcular envíos y revisar notificaciones e historial. Sus preferencias y datos de consulta deben mantenerse separados de los
+demás usuarios del teléfono.
+La siguiente propuesta contempla: navegación con barras, formularios, cámara, mapas, animaciones, lectura QR, SQLite,
+notificaciones push, MVVM e integración REST. Los datos de demostración serán ficticios o anonimizados.
+1. Pantalla de Bienvenida /
+Inicio
+Roles: Administrador,
+Investigador y Cliente
+Presenta el nombre “Museo de los
+Museos”, una breve explicación
+de sus servicios culturales y una
+animación inicial. El botón
+“Comenzar” lleva a la selección o
+inicio de sesión. Debe ofrecer
+acceso claro al catálogo, mapa de
+museos virtuales y cursos.
+
+2. Pantalla de Registro de
+Usuario
+Rol: Cliente
+Formulario para registrar nombre,
+correo, contraseña y avatar
+ficticios. Guarda el perfil y sus
+preferencias en Room/SQLite.
+Debe validar los datos, impedir
+registros incompletos y mantener
+separados los favoritos, historial y
+solicitudes de distintos usuarios
+en el mismo teléfono. El
+Administrador y el Investigador se
+habilitan como perfiles de prueba.
+
+3. Pantalla de Selección / Inicio
+de Sesión
+Roles: Administrador,
+Investigador y Cliente
+Permite seleccionar el rol e iniciar
+sesión con credenciales
+académicas de prueba. La
+aplicación identifica al usuario
+activo y habilita únicamente sus
+funciones. Al cambiar de perfil,
+debe actualizar favoritos,
+solicitudes y contenidos asociados
+sin mezclar información. El
+Administrador puede mantener
+cuentas ficticias de demostración.
+
+4. Pantalla de Principal /
+Dashboard
+Roles: Administrador,
+Investigador y Cliente
+Presenta un resumen adaptado al
+rol. Para el Cliente ofrece museos
+destacados, cursos, productos y
+accesos rápidos. El Administrador
+ve solicitudes y novedades de
+gestión; el Investigador, registros
+museológicos. Incorpora tarjetas,
+pequeñas animaciones y una
+barra de navegación inferior hacia
+Inicio, Mapa, Catálogo,
+Notificaciones y Perfil.
+
+
+5. Pantalla de Mapa de Museos
+Virtuales
+Roles: Administrador,
+Investigador y Cliente
+Muestra un mapa interactivo de
+Iberoamérica con marcadores de
+museos registrados. Consulta
+datos de una API REST ficticia y
+permite filtrar por país o
+proyecto. Al seleccionar un
+marcador presenta información
+básica y acceso al detalle. Debe
+diferenciar la ubicación geográfica
+del museo de su enlace a la visita
+virtual; puede usar SQLite como
+caché.
+
+6. Pantalla de Detalle del
+Museo Virtual
+Roles: Administrador,
+Investigador y Cliente
+Muestra nombre, país,
+descripción, imagen referencial,
+clasificación y enlace al recorrido
+virtual. El Cliente puede guardar el
+museo entre sus favoritos. El
+Investigador accede a formularios
+para registrar o corregir fichas
+museológicas; el Administrador
+puede revisar su publicación. Los
+datos se obtienen del backend y
+se conservan localmente cuando
+corresponda.
+
+7. Pantalla de Escáner QR
+Roles: Investigador y Cliente
+Activa la cámara para leer códigos
+QR asociados a museos,
+exposiciones, publicaciones o
+productos. Valida el código y
+determina qué ficha debe abrir. El
+Investigador puede probar los
+códigos de los registros que
+administra. Las lecturas correctas
+se agregan al historial local en
+SQLite, evitando registros
+duplicados innecesarios.
+
+8. Pantalla de Resultado del QR
+Roles: Investigador y Cliente
+Presenta una animación de
+lectura exitosa e identifica el
+museo, publicación o producto
+encontrado. Muestra una imagen,
+descripción breve y un botón para
+abrir su ficha correspondiente. Si
+el código es inválido o
+desconocido, informa el error y
+permite volver a escanear.
+Registra la consulta del usuario en
+el historial local.
+
+
+9. Pantalla de Catálogo de
+Productos y Cursos
+Roles: Administrador y Cliente
+Exhibe cursos, publicaciones,
+artículos museológicos y
+materiales de conservación
+agrupados por categorías.
+Incorpora búsqueda, filtros,
+imágenes, precios de prueba y
+disponibilidad. El Cliente puede
+consultar o seleccionar artículos;
+el Administrador puede acceder a
+formularios de alta, modificación
+y desactivación. El catálogo se
+sincroniza mediante Retrofit y
+admite caché SQLite.
+
+10. Pantalla de Detalle y
+Solicitud de Compra
+Rol: Cliente
+Muestra la ficha de un producto o
+curso: imagen, descripción, precio
+ficticio, disponibilidad y
+características. Permite elegir
+cantidad y agregar productos al
+carrito, o solicitar información
+sobre cursos. Debe validar la
+disponibilidad con el backend
+antes de confirmar una solicitud.
+Utiliza animaciones breves para
+indicar acciones exitosas o
+errores.
+
+11. Pantalla de Colección de
+Museos Favoritos
+Rol: Cliente
+Presenta una colección de museos
+guardados por el usuario, con
+miniaturas, nombres y países.
+Permite abrir sus fichas, acceder a
+visitas virtuales y quitar
+elementos de la lista. La colección
+se persiste en Room/SQLite y
+debe mantenerse separada para
+cada perfil. Puede ofrecer filtros
+entre museos consultados y
+recursos guardados.
+
+12. Pantalla de Carrito y Cálculo
+de Envío
+Rol: Cliente
+Lista productos seleccionados,
+cantidades, subtotales y monto
+total. Incluye un formulario para
+elegir destino nacional o
+internacional y modalidad de
+envío. Calcula el costo mediante
+reglas ficticias, sin conectarse a
+empresas de transporte reales.
+Antes de enviar la solicitud debe
+mostrar el total final; el backend
+centraliza el pedido y su estado.
+
+
+13. Pantalla de Historial y
+Gestión de Solicitudes
+Roles: Administrador y Cliente
+El Cliente consulta sus compras o
+solicitudes de cursos, sus fechas,
+montos y estados. El
+Administrador revisa las
+solicitudes recibidas y puede
+actualizar estados como
+Pendiente, Confirmado, Enviado o
+Entregado. La información oficial
+se mantiene en el backend; SQLite
+conserva un historial local de
+consulta. Los cambios deben
+actualizar visualmente la pantalla.
+
+14. Pantalla de Notificaciones
+Roles: Administrador,
+Investigador y Cliente
+Centraliza mensajes sobre nuevos
+cursos, museos incorporados,
+publicaciones, actividades y
+cambios de estado de pedidos.
+Debe contemplar notificaciones
+push y permitir navegar
+directamente a la pantalla
+relacionada. El Administrador
+puede originar avisos de prueba;
+el Investigador recibe alertas de
+contenidos museológicos. Las
+preferencias y notificaciones
+consultadas pueden persistirse en
+SQLite.
+
+15. Pantalla de Perfil y
+Configuración
+Roles: Administrador,
+Investigador y Cliente
+Permite consultar y editar datos
+de perfil, avatar y preferencias.
+Incluye ajustes de notificaciones,
+accesibilidad, idioma y permisos
+de cámara y ubicación. Ofrece
+cerrar sesión o cambiar de
+usuario. Los cambios locales
+deben guardarse en SQLite; cada
+rol verá únicamente las opciones
+autorizadas. Los formularios
+deben validar entradas y mostrar
+confirmaciones visuales.
+
+

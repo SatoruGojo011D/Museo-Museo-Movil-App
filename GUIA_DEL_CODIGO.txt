@@ -1,0 +1,770 @@
+GUÍA DEL CÓDIGO — MUSEO DE LOS MUSEOS
+=====================================
+
+Alcance
+-------
+Esta guía describe los archivos propios presentes en el proyecto y el comportamiento
+que implementan actualmente. No convierte en funcionalidad terminada todo lo que
+plantea el documento de instrucciones: donde hay datos simulados, pantallas de
+demostración o controles sin persistencia, se indica expresamente. Se dejan fuera
+carpetas de compilación y caché, dependencias descargadas y archivos de Android
+Studio (.idea).
+
+Panorama de arquitectura
+------------------------
+La aplicación es Android nativa, escrita en Kotlin y organizada principalmente
+con MVVM. MainActivity aloja el NavHost de Navigation Component; cada Fragment
+infla su layout mediante View Binding, conecta eventos de controles y recopila
+StateFlow/SharedFlow de su ViewModel respetando el ciclo de vida. Los adapters
+presentan listas en RecyclerView.
+
+La capa de presentación está en ui/fragments, ui/viewmodels, ui/adapters y
+ui/views. Los ViewModels realizan operaciones suspendidas en viewModelScope y
+exponen estado observable. data/model define tanto entidades Room como objetos
+de intercambio. data/local proporciona AppDatabase, DAOs SQL y conversión de
+Role. MuseumRepository concentra parte del acceso a Room y Retrofit. data/remote
+declara Retrofit, pero ApiClient conecta deliberadamente un interceptor de
+respuestas JSON de muestra: el flujo actual es de demostración y no depende de
+un servidor real. SessionManager conserva sesión y preferencias en
+SharedPreferences; las entidades con userId separan varios datos locales por
+perfil.
+
+Recorrido principal: Android inicia MainActivity y el nav_graph abre Welcome.
+Desde bienvenida se elige rol/registro o inicio de sesión; al autenticar se
+guarda la sesión y se navega al dashboard. La barra inferior enlaza Inicio, Mapa,
+Catálogo, Notificaciones y Perfil; MainActivity la oculta en pantallas
+secundarias y esconde el Catálogo para Investigador. Las acciones restantes
+abren fichas, QR, favoritos, carrito e historial.
+
+CÓDIGO KOTLIN
+-------------
+
+Actividad y persistencia local
+------------------------------
+
+app\src\main\java\cl\duoc\museo\MainActivity.kt
+Actividad única. Infla ActivityMainBinding, obtiene el NavController del
+NavHostFragment y enlaza BottomNavigationView con él. Un listener de destinos
+muestra la barra solo en dashboard, mapa, catálogo, notificaciones y perfil.
+En cada cambio consulta SessionManager y oculta el destino Catálogo para el rol
+RESEARCHER.
+
+app\src\main\java\cl\duoc\museo\data\local\AppDatabase.kt
+Declara Room con versión 2 y las entidades User, CatalogItem, Museum, Favorite,
+CartItem, Order y NotificationItem; expone el DAO correspondiente a cada una.
+RoleConverter se registra para guardar el enum como texto. El singleton
+getDatabase usa applicationContext, sincronización y @Volatile. MIGRATION_1_2
+crea catalog_items con sus columnas y clave primaria, preservando el esquema
+anterior; no exporta esquemas.
+
+app\src\main\java\cl\duoc\museo\data\local\CartDao.kt
+Consultas SQL de carrito por userId como Flow, búsqueda suspendida por usuario
+y producto, inserción REPLACE, actualización de cantidad y borrado de línea o
+de todo el carrito del usuario.
+
+app\src\main\java\cl\duoc\museo\data\local\CatalogDao.kt
+Lee catálogo activo (isActive = 1) o completo ordenado por título, recupera una
+ficha por ID, inserta una lista o elemento con REPLACE y desactiva mediante
+UPDATE, sin eliminar físicamente el registro.
+
+app\src\main\java\cl\duoc\museo\data\local\FavoriteDao.kt
+Expone favoritos del usuario como Flow; inserta o elimina por la pareja userId
+y museumId y responde con EXISTS si un elemento ya está guardado.
+
+app\src\main\java\cl\duoc\museo\data\local\MuseumDao.kt
+Proporciona como Flow todas las filas cached_museums, inserta la lista con
+REPLACE y busca un museo por ID. Es la caché local de fichas museológicas.
+
+app\src\main\java\cl\duoc\museo\data\local\NotificationDao.kt
+Emite notificaciones del usuario en orden de id descendente; cuenta las no
+leídas; comprueba duplicados de historial QR buscando categoría “Escaner QR”
+y mensaje idéntico; inserta con REPLACE y cambia isRead mediante UPDATE.
+
+app\src\main\java\cl\duoc\museo\data\local\OrderDao.kt
+Flujos de pedidos recientes por usuario y de todos los usuarios, inserción
+REPLACE y actualización SQL de estado por id. La vista administrativa usa la
+consulta global.
+
+app\src\main\java\cl\duoc\museo\data\local\RoleConverter.kt
+Convierte Role a su nombre para persistencia Room y reconstruye el enum. Si el
+texto no coincide con un valor conocido, devuelve CLIENT para que la lectura
+no falle.
+
+app\src\main\java\cl\duoc\museo\data\local\UserDao.kt
+Inserta usuarios con REPLACE, busca por correo o id con límite de una fila y
+actualiza un usuario existente. Lo utilizan registro, login y perfil.
+
+Modelos de datos
+----------------
+
+app\src\main\java\cl\duoc\museo\data\model\CartItem.kt
+Entidad Room cart_items: id autogenerado, userId, producto (id, nombre, precio,
+imagen) y cantidad. Es la fila que se suma o elimina en el carrito.
+
+app\src\main\java\cl\duoc\museo\data\model\CatalogItem.kt
+Entidad catalog_items, con id de texto, título, categoría, precio, imagen,
+disponibilidad, tipo, descripción, rating y bandera isActive. Los valores por
+defecto describen stock disponible, tipo Producto, rating 4,8 y activo.
+
+app\src\main\java\cl\duoc\museo\data\model\Favorite.kt
+Entidad favorites que vincula userId con museoId y conserva nombre, país,
+imagen y clasificación para renderizar la colección sin reconstruir la ficha.
+También se reutiliza para clasificar recursos/libros favoritos.
+
+app\src\main\java\cl\duoc\museo\data\model\Museum.kt
+Entidad cached_museums: datos descriptivos, clasificación, URLs, coordenadas y
+isFavorite. La clave es el id; la lista virtual del mapa se transforma desde
+esta ficha en el ViewModel de mapa.
+
+app\src\main\java\cl\duoc\museo\data\model\MuseumMapItem.kt
+Entidad declarada para virtual_museums_map con texto, ubicación, categoría,
+latitud/longitud, URL de tour, imagen, puntuación, reseñas, etiquetas y país.
+En AppDatabase no está incluida entre las entidades; el mapa usa este modelo
+como representación en memoria y convierte Museum de Room a este tipo.
+
+app\src\main\java\cl\duoc\museo\data\model\NotificationItem.kt
+Entidad notifications con id autogenerado, propietario, título, mensaje,
+categoría, marca temporal e isRead. La consulta QR también la aprovecha para
+conservar el registro de escaneos.
+
+app\src\main\java\cl\duoc\museo\data\model\Order.kt
+Entidad orders con propietario, fecha, cantidad total de productos, monto,
+estado, país de destino y modalidad de despacho. Se crea al confirmar checkout.
+
+app\src\main\java\cl\duoc\museo\data\model\Product.kt
+Modelo de producto para transportar id, nombre, categoría, precio, imagen,
+descripción y stock. No es entidad Room; el repositorio y el detalle lo
+convierten desde/a CatalogItem según el caso.
+
+app\src\main\java\cl\duoc\museo\data\model\Role.kt
+Enum de roles ADMINISTRATOR, RESEARCHER y CLIENT, cada uno con etiqueta
+española displayName para interfaz y mensajes.
+
+app\src\main\java\cl\duoc\museo\data\model\User.kt
+Entidad users con id autogenerado, nombre, email, campo passwordHash, Role y
+avatarRes. Room convierte el rol con RoleConverter. El código guarda y compara
+la contraseña ingresada directamente en ese campo; no aplica hash.
+
+Red, repositorio y utilidades
+-----------------------------
+
+app\src\main\java\cl\duoc\museo\data\remote\ApiClient.kt
+Construye una instancia perezosa de Retrofit con base
+https://api.museosiberoamerica.org/, Gson y OkHttp. Instala MockInterceptor,
+que intercepta las llamadas antes de llegar a un servicio externo.
+
+app\src\main\java\cl\duoc\museo\data\remote\ApiService.kt
+Contrato Retrofit suspendido: GET api/v1/museums devuelve Response<List<Museum>>;
+GET api/v1/museums/{id} devuelve una ficha; GET api/v1/products devuelve
+Response<List<Product>>. No hay aquí operaciones de escritura remota.
+
+app\src\main\java\cl\duoc\museo\data\remote\MockInterceptor.kt
+Responde siempre HTTP 200 con JSON local según la URL: si contiene api/v1/museums
+usa cinco museos de muestra; si contiene api/v1/products usa cuatro productos;
+lo demás recibe []. Los objetos JSON contienen los campos de Museum/Product.
+La condición de museos también intercepta api/v1/museums/{id} y responde una
+lista donde ApiService espera un solo Museum; por tanto esa llamada individual
+no tiene una respuesta compatible. La base URL no representa una integración
+efectiva con backend.
+
+app\src\main\java\cl\duoc\museo\data\repository\MuseumRepository.kt
+Fachada sobre AppDatabase y ApiClient. Gestiona lectura/guardado/desactivación de
+catálogo, refresco de museos, descarga de productos (convierte errores/HTTP no
+exitosos en lista vacía), favoritos, carrito, pedidos, notificaciones y usuarios.
+toggleFavorite busca la combinación usuario/museo y elimina o inserta. addToCart
+consolida la cantidad en una fila si el mismo producto ya está en el carrito.
+checkout se ejecuta en withTransaction: lee el carrito del usuario, calcula
+subtotal y envío ficticio según Chile/resto y estándar/expreso, inserta el pedido
+pendiente y una notificación, vacía ese carrito y retorna el total; si está vacío,
+retorna null. También expone Flow de entidades para que Room emita cambios.
+
+app\src\main\java\cl\duoc\museo\utils\ScanCodeResolver.kt
+Define ScannedContentKind, ScannedContent y un registro fijo de códigos QR/barra
+que mapean códigos alternativos a museos o productos de muestra. resolve limpia
+espacios, quita fragmento y query de URL, toma el último segmento, normaliza a
+mayúsculas y busca en el mapa; los códigos no registrados devuelven null. La
+tabla es demostrativa y no consulta Room ni el servidor.
+
+app\src\main\java\cl\duoc\museo\utils\SessionManager.kt
+Envuelve SharedPreferences museo_session_prefs. Guarda/lee id, nombre, correo,
+rol, avatar y bandera de sesión; clearSession elimina esos campos. También
+persiste idioma, dirección, intereses, notificaciones y tamaño de texto. Las
+preferencias se nombran con user_<id>_ para separarlas por perfil; la sesión no
+se cifra.
+
+Adaptadores de RecyclerView
+---------------------------
+
+app\src\main\java\cl\duoc\museo\ui\adapters\CartAdapter.kt
+ListAdapter de CartItem usando ItemCartProductBinding. Muestra nombre, precio
+entero y cantidad; elige un drawable simple según nombre de curso y delega a
+callbacks los botones +, − y eliminar. CartDiffCallback compara id y contenido.
+
+app\src\main\java\cl\duoc\museo\ui\adapters\CatalogAdapter.kt
+ListAdapter de CatalogItem con tarjeta, categoría, nombre y precio. Asigna
+miniatura local por categoría, oculta “agregar” a administradores, delega clic
+de tarjeta y carrito y aplica animación de aparición/escala. DiffUtil compara id
+y objeto completo.
+
+app\src\main\java\cl\duoc\museo\ui\adapters\FavoritesAdapter.kt
+Presenta nombre y ubicación del favorito, elige icono ilustrativo según
+clasificación y delega selección o eliminación. La identidad DiffUtil considera
+iguales filas con igual id o museumId.
+
+app\src\main\java\cl\duoc\museo\ui\adapters\NotificationsAdapter.kt
+Muestra título, mensaje, timestamp y punto de no leído. Escoge icono y tinte por
+categoría (Cursos, Museos, Pedidos, Eventos/Alertas, Publicaciones o genérica),
+y delega el clic de fila.
+
+app\src\main\java\cl\duoc\museo\ui\adapters\OrderHistoryAdapter.kt
+Presenta identificador con formato #2024-xxxxx, fecha, número de productos,
+monto y estado. Colorea el distintivo por estado y delega clic; DiffUtil usa id
+y contenido.
+
+Fragments y flujo de interfaz
+-----------------------------
+Los Fragments inflan bindings de los layouts homónimos, conectan listeners y
+recogen estado mientras la vista está STARTED; la mayoría limpia el binding al
+destruir la vista. Las descripciones señalan las responsabilidades y el flujo
+real, no implican que cada botón tenga backend.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\WelcomeFragment.kt
+Prepara la bienvenida, anima logo, títulos y botones con fade y desplazamiento
+escalonado, y navega a selección de rol (Comenzar) o directamente a Login.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\RoleSelectionFragment.kt
+Mantiene localmente el rol seleccionado y actualiza borde, fondo y flecha de
+las tarjetas. Registro solo admite CLIENT y envía selectedRole en argumentos;
+login permite cualquiera de los tres roles y envía el mismo argumento.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\LoginFragment.kt
+Recibe rol opcional, ofrece selección visual de perfil, toma email/contraseña y
+llama a LoginViewModel. Observa errores/carga y eventos de éxito, error e
+información; éxito abre dashboard. Al seleccionar rol rellena automáticamente
+las credenciales de demostración si el campo está vacío o tiene dominio museo.org.
+“Olvidé contraseña” solo emite un mensaje de demostración.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\RegisterFragment.kt
+Captura nombre, correo, contraseña y cuatro avatares; marca la selección visual,
+muestra errores/carga desde RegisterViewModel y, ante éxito, abre dashboard.
+Incluye navegación de retorno a login; tocar la previsualización solo informa
+que el avatar se escoge en las opciones inferiores.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\DashboardFragment.kt
+Vincula accesos rápidos a mapa, catálogo, QR, favoritos, historial, notificaciones
+y perfil. Observa saludo, avatar, badge y rol; cambia títulos y visibilidad de
+accesos para Cliente, Investigador y Administrador. Tarjetas de explorar y
+destacados encaminan a catálogo/mapa o solicitudes según rol; anima la entrada.
+Recarga datos cuando la pantalla vuelve a primer plano.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\MapFragment.kt
+Alias sin lógica propia que hereda VirtualMuseumsMapFragment. Mantiene el nombre
+de destino exigido por el grafo de navegación.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\VirtualMuseumsMapFragment.kt
+Monta IberoamericaMapView dentro de mapContainer, conecta marcadores al
+MapViewModel y presenta tarjeta flotante para la selección. Chips abren diálogos
+con países y categorías/proyectos presentes; tarjeta/botón pasan museumId y
+título a MuseumDetail. Recoge listas y selección como flujos y libera la vista
+del mapa al destruir el layout.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\MuseumDetailFragment.kt
+Lee museumId de argumentos y presenta la ficha de ViewModel. Botón de tour abre
+projectUrl con ACTION_VIEW (usa URL colonial de respaldo); controles duplicados
+permiten marcar favorito. Investigador ve “Editar ficha”, que actualmente solo
+lanza un Toast; Administrador ve tarjeta de publicación y botones que cambian
+estado solo en el ViewModel y muestran mensajes; no guardan decisión en Room.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\QrScannerFragment.kt
+Configura ZXing BarcodeView con QR y formatos EAN/UPC/CODE/ITF/CODABAR y
+decodificación continua. Solicita permiso de cámara en ejecución, pausa/reanuda
+la cámara según ciclo de vida, controla linterna y permite elegir imagen. La
+imagen se reduce para limitar dimensiones y ZXing la decodifica en Dispatchers.IO;
+resultado válido navega con código, id y tipo a la pantalla de resultado. El
+ViewModel evita procesar repeticiones y guarda lecturas reconocidas como
+notificaciones QR; errores se muestran con Toast.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\QrResultFragment.kt
+Resuelve scannedCode con QrResultViewModel y alterna panel de éxito/error. En
+éxito presenta metadatos y deja abrir detalle de museo o producto según kind;
+Volver a escanear y atrás vuelven al scanner. Anima icono y tarjeta.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\CatalogFragment.kt
+Configura catálogo en cuadrícula de dos columnas, barra de búsqueda por texto,
+chips de categorías y diálogo de orden (recomendados, precio ascendente/
+descendente, nombre). Cliente/Investigador abre detalle y puede añadir al
+carrito; Administrador usa diálogo para crear/editar/desactivar elemento y no
+ve botón de añadir. El editor es dinámico; ViewModel valida y guarda en Room.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\ProductDetailFragment.kt
+Lee id/nombre y observa la ficha. Permite favorito, selector de cantidad solo
+para producto físico y acción principal que agrega al carrito o registra una
+solicitud de información para curso. Adapta etiqueta/estado de stock y comunica
+éxito, agotado y error; aplica animación al éxito o sacudida al agotado.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\FavoritesFragment.kt
+Muestra lista con toggles Museos/Recursos y contadores, estado vacío y removal.
+Clasifica por texto de clasificación; clic navega a detalle de museo o producto
+con argumentos adecuados. Recarga cuando vuelve a primer plano.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\CartFragment.kt
+Presenta RecyclerView y selectores de país/modalidad; Chile usa tarifas
+nacionales y el resto internacionales. El subtotal, despacho y total llegan
+del ViewModel. Botones de línea actualizan cantidad/eliminan; checkout informa
+resultado y conduce al historial. La regla/tarifa es simulada.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\HistoryFragment.kt
+Fragmento mínimo que únicamente infla FragmentHistoryBinding y limpia el binding.
+No está conectado por nav_graph: el destino llamado historyFragment usa
+OrderHistoryFragment.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\OrderHistoryFragment.kt
+Lista los pedidos del usuario o, si es Administrador, los globales. Los chips
+filtran pendientes, enviados, entregados o todos; un clic de Administrador abre
+selector de estado (Pendiente/Confirmado/Enviado/Entregado) y el resto ve un
+resumen. El ViewModel actualiza estado y genera aviso; búsqueda es solo un Toast.
+
+app\src\main\java\cl\duoc\museo\ui\fragments\NotificationsFragment.kt
+Filtra la lista por chips y marca cada elemento leído al tocarlo. Enlaza Cursos
+al catálogo, Museos a una ficha de muestra y Pedidos al historial; otras
+categorías muestran aviso. El botón de búsqueda es solo indicativo. Para
+Administrador muestra un formulario que agrega una notificación local de prueba
+(el texto menciona FCM, pero no integra Firebase ni push real).
+
+app\src\main\java\cl\duoc\museo\ui\fragments\ProfileFragment.kt
+Muestra sesión, rol, idioma y avatar. Diálogos editan nombre/correo, dirección,
+intereses, notificaciones, accesibilidad y lengua; ViewModel valida y guarda.
+Direcciones e intereses se ocultan para perfiles distintos de Cliente. El
+idioma disponible es solo Español; tocar avatar lo rota entre cuatro recursos.
+Cerrar sesión limpia la sesión y vuelve a bienvenida.
+
+ViewModels (estado y lógica de presentación)
+--------------------------------------------
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\CartViewModel.kt
+Mantiene líneas del carrito y StateFlow de subtotal, envío, total, país y tipo.
+Recolecta Room por usuario; Chile cuesta 12 estándar/18 expreso y otros países
+25/38. Incrementa, decrementa (elimina al bajar de uno), borra y emite eventos
+de error/éxito de checkout; la confirmación real la delega a la transacción del
+repositorio.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\CatalogViewModel.kt
+Carga rol y catálogo. Si Room ya tiene filas muestra las activas; si está vacío
+intenta Retrofit y, sin productos, carga seis elementos locales de muestra y los
+cachea. Mantiene lista completa/filtrada, categoría, búsqueda y orden. Admin
+valida categoría, nombre y precio para guardar por id existente o UUID y puede
+desactivar lógicamente; añade productos al carrito con stock de muestra 10.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\DashboardViewModel.kt
+Compone saludo, subtítulo contextual, rol, avatar y existencia de avisos no
+leídos usando SessionManager, UserDao y NotificationDao. El subtítulo cambia
+por Cliente, Investigador y Administrador; emplea Maria solo como valor inicial.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\FavoritesViewModel.kt
+Observa favoritos por el id de sesión, mantiene filtro Museos/Recursos, contadores
+y estado vacío. Considera libro/recurso según classification y asegura muestras
+de museos/recursos para ids aún no guardados. Quitar favorito reutiliza
+toggleFavorite del repositorio.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\LoginViewModel.kt
+Valida formato de email y contraseña no vacía, compara rol y credenciales de
+perfiles demo o usuario CLIENT registrado, obtiene/crea el usuario demo en Room
+y guarda sesión. Expone estado de formulario y eventos Success/Error/Info. La
+recuperación de contraseña solo valida y emite instrucciones simuladas.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\MapViewModel.kt
+Intenta obtener museos por ApiClient, guarda respuestas en cached_museums; ante
+fallo o lista vacía recurre a Room y luego a cinco fichas de demostración. Mapea
+Museum a MuseumMapItem, mantiene selección y aplica filtros exactos por país o
+categoría. Los nombres y coordenadas de muestra viven en getMockMuseumList.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\MuseumDetailViewModel.kt
+Carga rol, museo desde la caché Room y favorito por usuario; si falta, crea una
+ficha colonial de respaldo. Expone estado de carga/ficha/favorito/publicación.
+toggleFavorite sí delega a Room; approvePublication/rejectPublication solo
+actualizan el texto de estado en memoria.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\NotificationsViewModel.kt
+Expone notificaciones, filtro de categoría, rol, visibilidad del FAB y estado
+vacío. Recoge Room por usuario; marca leído e inserta avisos de Administrador.
+seedInitialNotificationsIfEmpty inserta seis muestras en cada llamada a
+loadNotifications (no comprueba antes si ya existen), detalle relevante al
+volver a la pantalla.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\OrderHistoryViewModel.kt
+Selecciona pedidos de todos los usuarios para Admin y del userId activo para
+otros roles; cancela una recolección previa al recargar. Filtra grupos de
+estados. updateOrderStatus actualiza Room y crea notificación para el userId del
+pedido cambiado.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\ProductDetailViewModel.kt
+Carga producto activo desde Room y, si falta, busca API o crea un producto de
+respaldo basado en id/nombre. Determina si es curso, disponibilidad y etiqueta;
+ofrece cantidad y favorito. Cursos generan una notificación local de solicitud
+de información, productos entran al carrito; agotado emite evento. Favoritos
+usan la misma tabla Favorite adaptando Product a Museum.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\ProfileViewModel.kt
+Arma estado desde sesión, Room y preferencias; para avatar usa el valor de Room
+o avatar_1 como respaldo. Valida nombre, email y correo
+duplicado al editar; protege el correo demo de cambio, sincroniza el usuario en
+Room y sesión. Dirección, intereses, notificaciones, accesibilidad e idioma se
+guardan en SessionManager; avatar se rota y persiste. Logout emite evento tras
+limpiar sesión.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\QrResultViewModel.kt
+Resuelve el código mediante ScanCodeResolver y convierte resultado en estado
+con válido, tipo, autor, descripción, id y clase de destino; produce mensaje de
+error si no lo conoce.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\QrScannerViewModel.kt
+Expone estado de linterna y SharedFlow de Success/Error. Sincroniza el bloqueo
+de duplicados/reentradas, valida el texto, resuelve el contenido, consulta
+NotificationDao para no repetir el mismo mensaje QR del usuario y registra una
+NotificationItem. resetLastScannedCode permite iniciar otra lectura.
+
+app\src\main\java\cl\duoc\museo\ui\viewmodels\RegisterViewModel.kt
+Controla validación de nombre requerido, correo, contraseña de seis caracteres,
+correos reservados y duplicados. Inserta únicamente usuarios CLIENT, asigna
+avatar elegido, guarda sesión y emite eventos de registro correcto/error.
+
+Vista personalizada
+-------------------
+
+app\src\main\java\cl\duoc\museo\ui\views\IberoamericaMapView.kt
+View Canvas que pinta fondo de mar, retícula, siluetas aproximadas de
+Norteamérica, Sudamérica e Iberia, rótulo y marcadores. Proyecta latitud/
+longitud a coordenadas de pantalla; resalta el museo seleccionado y, al levantar
+el dedo cerca del marcador más próximo, notifica el id mediante callback.
+
+Pruebas
+-------
+
+app\src\test\java\cl\duoc\museo\ExampleUnitTest.kt
+Prueba de plantilla que verifica la suma 2 + 2; no cubre lógica del dominio.
+
+app\src\test\java\cl\duoc\museo\utils\ScanCodeResolverTest.kt
+Pruebas unitarias de códigos reconocidos de museo/producto, extracción de
+código desde ruta URL con parámetros y rechazo de código desconocido o vacío.
+
+app\src\androidTest\java\cl\duoc\museo\ExampleInstrumentedTest.kt
+Prueba instrumentada que obtiene el contexto de destino en dispositivo y
+comprueba que su packageName es cl.duoc.museo.
+
+MANIFIESTO, NAVEGACIÓN Y RECURSOS XML
+-------------------------------------
+
+app\src\main\AndroidManifest.xml
+Declara INTERNET, CAMERA, ubicación fina y aproximada; cámara es característica
+opcional. Configura backup, reglas XML, iconos, etiqueta, tema y soporte RTL.
+MainActivity es exportada y única actividad launcher con ajuste del teclado
+adjustResize. No declara servicios push ni permisos adicionales.
+
+app\src\main\res\layout\activity_main.xml
+ConstraintLayout con FragmentContainerView como NavHostFragment (nav_graph,
+default host) y BottomNavigationView anclado al borde inferior; el contenido se
+ajusta entre barra y parte superior.
+
+app\src\main\res\navigation\nav_graph.xml
+Grafo con Welcome como startDestination y destinos para rol, registro, login,
+dashboard, mapa, detalle de museo, scanner/resultado QR, catálogo, detalle de
+producto, favoritos, carrito, historial, notificaciones y perfil. Define acciones
+entre pantallas; después de login/registro elimina del back stack el flujo
+previo. historyFragment usa OrderHistoryFragment, no HistoryFragment. Los
+argumentos museumId/productId se envían por Bundle desde el código, no están
+declarados como argumentos tipados en el XML.
+
+app\src\main\res\menu\bottom_nav_menu.xml
+Cinco destinos de nivel superior con ids coincidentes con nav_graph: inicio,
+mapa, catálogo, notificaciones y perfil; define icono y etiqueta de cada uno.
+
+app\src\main\res\values\strings.xml
+Catálogo único de textos: nombre y bienvenida, textos de perfil, notificaciones,
+pedidos, carrito, favoritos, detalle de producto, catálogo, scanner/resultado QR,
+ficha y filtros de museo, dashboard, login/registro, navegación, roles, acciones
+y estados. Incluye mensajes por defecto que las vistas usan como contenido o
+ayuda; la mayoría de textos dinámicos de muestra también está escrita en Kotlin.
+
+app\src\main\res\values\colors.xml
+Paleta compartida (azules, oro, superficies, fondos, texto y divisores), estados
+de selección/acierto, tokens de tarjetas y colores de cuadrícula/mar/continente/
+costa/etiqueta del mapa y overlays del scanner.
+
+app\src\main\res\values\themes.xml
+Tema claro Theme.Museo basado en Material3 Light NoActionBar: colores primario,
+secundario y contenedores, barra de estado/navegación y fondo de ventana.
+
+app\src\main\res\values-night\themes.xml
+Definición alternativa para modo noche con el mismo parent Material3 Light
+NoActionBar y prácticamente los mismos colores; no cambia a un tema oscuro.
+
+app\src\main\res\xml\backup_rules.xml
+Plantilla de reglas Android Auto Backup vacía: no incluye ni excluye contenido
+activo; el ejemplo comentado muestra cómo filtrar SharedPreferences.
+
+app\src\main\res\xml\data_extraction_rules.xml
+Plantilla Android 12+ para backup y transferencia de dispositivo, sin reglas
+include/exclude activas.
+
+Layouts de pantallas
+--------------------
+
+app\src\main\res\layout\fragment_welcome.xml
+Pantalla de bienvenida: imagen de fondo con overlay, marca, título/subtítulo y
+acciones Comenzar e Iniciar sesión.
+
+app\src\main\res\layout\fragment_role_selection.xml
+Pantalla desplazable con encabezado y tres tarjetas Cliente/Investigador/
+Administrador más botones de registro y login.
+
+app\src\main\res\layout\fragment_login.xml
+Formulario desplazable de login con tres tarjetas para elegir rol, campos de
+correo/contraseña, recuperación, acceso y enlace a registro.
+
+app\src\main\res\layout\fragment_register.xml
+Formulario desplazable para nombre, email y contraseña, previsualización y
+cuatro opciones de avatar, confirmar registro y volver a login.
+
+app\src\main\res\layout\fragment_dashboard.xml
+Dashboard desplazable: cabecera con saludo/avatar/notificaciones, tarjeta de
+acceso rápido, cuadrícula de tarjetas Explora (cursos, productos, museos,
+novedades) y bloque de destacados.
+
+app\src\main\res\layout\fragment_map.xml
+FrameLayout que incluye fragment_virtual_museums_map.xml. Es el layout legado
+asignado al alias MapFragment; el binding efectivo de la clase base usa el
+layout incluido fragment_virtual_museums_map.
+
+app\src\main\res\layout\fragment_virtual_museums_map.xml
+Mapa en FrameLayout, filtros Todos/País/Proyecto y tarjeta flotante con imagen,
+nombre, ubicación, etiquetas, valoración/reseñas y acción de detalle.
+
+app\src\main\res\layout\fragment_museum_detail.xml
+Ficha desplazable con hero, regreso/favorito, nombre/ubicación, chips, rating,
+descripción, panel de estado de publicación y botones diferenciados para
+aprobar/revisar, editar, tour virtual y favorito.
+
+app\src\main\res\layout\fragment_qr_scanner.xml
+BarcodeView a pantalla completa, overlay oscuro, marco de lectura, volver/
+linterna, textos, controles de linterna/galería y tarjeta con instrucciones.
+
+app\src\main\res\layout\fragment_qr_result.xml
+Estado de éxito con icono, título, tarjeta de contenido (miniatura, título,
+tipo/autor y descripción), grupo de error independiente y botones de detalle/
+reescaneo.
+
+app\src\main\res\layout\fragment_catalog.xml
+Título y filtro, tarjeta de búsqueda, chips Todos/Cursos/Libros/Materiales,
+RecyclerView de catálogo y FAB de alta administrativa (visibilidad aplicada en
+runtime).
+
+app\src\main\res\layout\fragment_product_detail.xml
+Hero, volver/favorito, nombre/precio/rating/descripción, área de cantidad,
+disponibilidad/stock y botón principal. El Fragment oculta el selector para
+cursos.
+
+app\src\main\res\layout\fragment_favorites.xml
+Encabezado, selector Museos/Recursos, lista RecyclerView y texto de estado vacío.
+
+app\src\main\res\layout\fragment_cart.xml
+Encabezado, lista del carrito y mensaje vacío; sección de cálculo con país y
+modalidad, resumen subtotal/despacho/total y acción checkout.
+
+app\src\main\res\layout\fragment_history.xml
+Layout LinearLayout sencillo con título y RecyclerView rvHistory. Corresponde
+al HistoryFragment mínimo, distinto de la pantalla que abre la navegación.
+
+app\src\main\res\layout\fragment_order_history.xml
+Encabezado, búsqueda, chips Todas/Pendientes/Enviadas/Entregadas, rvOrders y
+mensaje de lista vacía.
+
+app\src\main\res\layout\fragment_notifications.xml
+Encabezado y búsqueda, chips de categoría, rvNotifications, estado vacío y FAB
+para avisos administrativos (oculto según rol).
+
+app\src\main\res\layout\fragment_profile.xml
+Perfil con avatar/nombre/rol/email, menú de datos, dirección, intereses,
+notificaciones, accesibilidad, idioma y ayuda, además de cerrar sesión. Algunas
+filas se ocultan por rol y otras abren diálogos creados por Kotlin.
+
+Layouts de filas
+----------------
+
+app\src\main\res\layout\item_cart_product.xml
+Tarjeta de carrito con miniatura, nombre, precio, eliminar y stepper de
+cantidad.
+
+app\src\main\res\layout\item_catalog_product.xml
+Tarjeta de producto/categoría con miniatura, título, precio y acción para añadir.
+
+app\src\main\res\layout\item_favorite_museum.xml
+Tarjeta de favorito con miniatura, nombre/ubicación y acción de quitar.
+
+app\src\main\res\layout\item_notification.xml
+Fila de notificación con icono, título, mensaje, hora y punto de no leído.
+
+app\src\main\res\layout\item_order_history.xml
+Tarjeta de pedido con id, fecha, cantidad, total, badge de estado y chevron.
+
+Drawables XML
+-------------
+Los siguientes son recursos de forma/vector usados como fondos, iconos o
+ilustraciones; sus nombres son rutas independientes de recurso Android:
+
+app\src\main\res\drawable\bg_circle_translucent.xml — forma circular negra
+translúcida para superponer controles.
+app\src\main\res\drawable\bg_museum_interior.xml — vector grande que compone
+una sala/interior museal estilizado con planos, columnas y arcos.
+app\src\main\res\drawable\bg_qr_viewfinder.xml — cuatro esquinas vectoriales
+blancas para el marco del escáner.
+app\src\main\res\drawable\bg_tag_rounded.xml — etiqueta con esquinas de 8 dp y
+fondo gold_light_bg.
+app\src\main\res\drawable\bg_tag_teal_rounded.xml — variante de etiqueta con
+fondo teal_light_bg.
+app\src\main\res\drawable\ic_accessibility.xml — figura humana de accesibilidad.
+app\src\main\res\drawable\ic_add.xml — signo más.
+app\src\main\res\drawable\ic_arrow_back.xml — flecha de retroceso.
+app\src\main\res\drawable\ic_book.xml — libro abierto/cubierta.
+app\src\main\res\drawable\ic_camera.xml — cámara con lente.
+app\src\main\res\drawable\ic_cart.xml — carrito de compra.
+app\src\main\res\drawable\ic_catalog.xml — ficha/libro de catálogo.
+app\src\main\res\drawable\ic_check_circle.xml — círculo con marca de verificación.
+app\src\main\res\drawable\ic_chevron_right.xml — chevron hacia la derecha.
+app\src\main\res\drawable\ic_crown.xml — corona para distintivo.
+app\src\main\res\drawable\ic_delete.xml — papelera.
+app\src\main\res\drawable\ic_edit.xml — lápiz de edición.
+app\src\main\res\drawable\ic_external_link.xml — enlace que abre fuera.
+app\src\main\res\drawable\ic_favorite.xml — corazón relleno.
+app\src\main\res\drawable\ic_favorite_border.xml — contorno de corazón.
+app\src\main\res\drawable\ic_filter.xml — líneas de filtro.
+app\src\main\res\drawable\ic_flashlight.xml — linterna.
+app\src\main\res\drawable\ic_gallery.xml — imagen/montañas de galería.
+app\src\main\res\drawable\ic_glasses.xml — gafas.
+app\src\main\res\drawable\ic_history.xml — reloj/flecha de historial.
+app\src\main\res\drawable\ic_home.xml — casa para Inicio.
+app\src\main\res\drawable\ic_info.xml — información en círculo.
+app\src\main\res\drawable\ic_language.xml — globo con meridianos.
+app\src\main\res\drawable\ic_launcher_background.xml — fondo vectorial azul
+con retícula geométrica para el icono adaptativo.
+app\src\main\res\drawable\ic_launcher_foreground.xml — primer plano vectorial
+con ilustración tipo robot/museo para el icono de aplicación.
+app\src\main\res\drawable\ic_location_pin.xml — pin de ubicación.
+app\src\main\res\drawable\ic_lock.xml — candado.
+app\src\main\res\drawable\ic_logout.xml — salida/flecha roja.
+app\src\main\res\drawable\ic_map.xml — mapa plegado.
+app\src\main\res\drawable\ic_megaphone.xml — megáfono.
+app\src\main\res\drawable\ic_museum.xml — edificio de museo.
+app\src\main\res\drawable\ic_notifications.xml — campana.
+app\src\main\res\drawable\ic_person.xml — silueta de persona.
+app\src\main\res\drawable\ic_qr_code.xml — patrón QR.
+app\src\main\res\drawable\ic_remove.xml — signo menos.
+app\src\main\res\drawable\ic_search.xml — lupa.
+app\src\main\res\drawable\ic_settings.xml — engranaje.
+app\src\main\res\drawable\ic_star.xml — estrella amarilla.
+app\src\main\res\drawable\ic_truck.xml — camión de despacho.
+app\src\main\res\drawable\ic_warning.xml — triángulo de advertencia rojo.
+
+Iconos rasterizados y adaptativos
+--------------------------------
+Los WebP son variantes de resolución del mismo icono de launcher (normal y
+round); se agrupan aquí como permite el inventario de assets binarios:
+app\src\main\res\mipmap-hdpi\ic_launcher.webp,
+app\src\main\res\mipmap-hdpi\ic_launcher_round.webp,
+app\src\main\res\mipmap-mdpi\ic_launcher.webp,
+app\src\main\res\mipmap-mdpi\ic_launcher_round.webp,
+app\src\main\res\mipmap-xhdpi\ic_launcher.webp,
+app\src\main\res\mipmap-xhdpi\ic_launcher_round.webp,
+app\src\main\res\mipmap-xxhdpi\ic_launcher.webp,
+app\src\main\res\mipmap-xxhdpi\ic_launcher_round.webp,
+app\src\main\res\mipmap-xxxhdpi\ic_launcher.webp y
+app\src\main\res\mipmap-xxxhdpi\ic_launcher_round.webp.
+
+app\src\main\res\mipmap-anydpi-v26\ic_launcher.xml
+Icono adaptativo normal Android 8+: combina ic_launcher_background y
+ic_launcher_foreground; también declara el recurso monochrome con el mismo
+primer plano.
+
+app\src\main\res\mipmap-anydpi-v26\ic_launcher_round.xml
+Definición adaptativa redonda con las mismas capas de fondo, primer plano y
+monocromo; el recorte lo aplica el launcher.
+
+DOCUMENTACIÓN Y CONFIGURACIÓN
+-----------------------------
+
+app\instrucciones.txt
+Enunciado/caso de estudio del producto: objetivos académicos, roles de prueba y
+requerimientos de pantallas, catálogo, mapa, QR, solicitudes, preferencias y
+persistencia. Sirve de contexto de diseño, no certifica que todas esas
+capacidades (por ejemplo push/backend) estén implementadas.
+
+.gitignore
+Excluye archivos de IDE, caches Gradle, configuración local SDK, salidas build,
+capturas y directorios nativos de compilación del repositorio.
+
+app\.gitignore
+Ignora local.properties y build del módulo app.
+
+build.gradle.kts
+Configuración de plugins a nivel raíz; declara el plugin de aplicación Android
+usando el alias central y no lo aplica en este nivel.
+
+app\build.gradle.kts
+Configura módulo Android cl.duoc.museo, compileSdk 37, minSdk 24, targetSdk 35,
+versión 1.0, View Binding, runner de instrumentación y compatibilidad Java 17.
+Define release con minificación desactivada y referencia reglas de ProGuard.
+Dependencias incluyen AndroidX/Material, Navigation 2.7.7, Lifecycle 2.7.0,
+OkHttp/Retrofit/Gson, Room 2.8.5 con KSP, ZXing, JUnit y Espresso. Las
+versiones/plugins generales se centralizan en libs.versions.toml.
+
+settings.gradle.kts
+Declara repositorios de plugins (Google, Maven Central, Plugin Portal), Foojay
+Toolchains Resolver, repositorios de dependencias, nombre raíz Museo y único
+módulo incluido :app.
+
+gradle.properties
+Parámetros globales de Gradle: heap de daemon 2 GB y UTF-8, configuración cache
+activada, estilo Kotlin oficial y permiso requerido para source sets Kotlin
+registrados por KSP; paralelismo queda comentado.
+
+gradle\libs.versions.toml
+Catálogo de versiones/alias para Android Gradle Plugin, KSP, AndroidX,
+ConstraintLayout, Material, JUnit y Espresso. Los plugins y librerías sin alias
+se declaran directamente en app/build.gradle.kts.
+
+gradle\gradle-daemon-jvm.properties
+Configuración generada de toolchain: solicita Java 25 y fija URLs de Foojay por
+sistema operativo y arquitectura para que Gradle encuentre/obtenga el JDK.
+
+gradle\wrapper\gradle-wrapper.properties
+Configura descarga reproducible de Gradle 9.6.0 binario, suma SHA-256, timeout,
+validación de URL y directorios estándar del wrapper.
+
+gradle\wrapper\gradle-wrapper.jar
+JAR binario de Gradle Wrapper que permite ejecutar la distribución indicada en
+gradle-wrapper.properties; no contiene lógica de la aplicación Museo.
+
+gradlew
+Script de arranque del wrapper para sistemas tipo Unix; localiza Java y delega
+la ejecución a Gradle Wrapper.
+
+gradlew.bat
+Script equivalente del wrapper para Windows; invoca Gradle usando la
+configuración del wrapper.
+
+local.properties
+Configuración local no compartible con la ruta del Android SDK instalada en esta
+máquina. Gradle/Android Studio la usa para localizar herramientas, no es parte
+de datos de la aplicación.
+
+app\src\main\keepRules\rules.keep
+Archivo para reglas R8 específicas. Su contenido son comentarios de plantilla;
+no añade reglas activas. La variante release actual tiene minificación apagada.
+
+Cobertura del inventario
+------------------------
+La guía recorre cada fuente Kotlin, test, script/configuración versionada o
+propia enumerada en el proyecto y cada XML de manifest, navegación, menú, layout,
+valores, drawable, icono adaptativo y reglas Android. Los WebP repetidos solo
+varían por resolución/forma del mismo launcher y se describen agrupados. Se
+excluyen intencionalmente .idea, .gradle, .kotlin, build y otros artefactos o
+dependencias generadas.

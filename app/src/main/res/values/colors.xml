@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primary">#1C5D91</color>
+    <color name="primary_dark">#123B5C</color>
+    <color name="primary_light">#4A8DBD</color>
+    <color name="accent_gold">#D1A552</color>
+    <color name="accent_gold_dark">#9A702A</color>
+    <color name="accent_blue">#2D73A8</color>
+    <color name="dark_blue">#123B5C</color>
+    <color name="background_warm">#F3F7FB</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="text_primary">#172B3A</color>
+    <color name="text_secondary">#5B6E7D</color>
+    <color name="divider_color">#DCE6EF</color>
+    <color name="chip_background">#E8F0F7</color>
+    <color name="chip_selected">#1C5D91</color>
+    <color name="green_success">#2E7D5B</color>
+
+    <!-- Design System Tokens -->
+    <color name="beige_gold">#E9C77A</color>
+    <color name="overlay_dark">#80000000</color>
+    <color name="card_selected_bg">#EAF3FA</color>
+
+    <!-- Dashboard Specific Tokens -->
+    <color name="teal_green">#168F95</color>
+    <color name="teal_light_bg">#D9EFF0</color>
+    <color name="gold_light_bg">#F6EEDB</color>
+    <color name="card_light_gray">#EDF2F6</color>
+    <color name="notification_dot">#E53935</color>
+    <color name="green_success_light">#E5F2EA</color>
+    <color name="scanner_overlay">#80123B5C</color>
+    <color name="scanner_card">#CC123B5C</color>
+    <color name="map_sea">#E5F0F7</color>
+    <color name="map_land">#E7EBDD</color>
+    <color name="map_coast">#A8BDAE</color>
+    <color name="map_grid">#B9D0DD</color>
+    <color name="map_label">#617D8D</color>
+</resources>

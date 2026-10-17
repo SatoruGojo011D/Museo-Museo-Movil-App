@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/welcomeFragment">
+
+    <!-- Pantalla 1: Bienvenida -->
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="cl.duoc.museo.ui.fragments.WelcomeFragment"
+        android:label="Bienvenida"
+        tools:layout="@layout/fragment_welcome">
+        <action
+            android:id="@+id/action_welcomeFragment_to_roleSelectionFragment"
+            app:destination="@id/roleSelectionFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <!-- Pantalla Selección de Rol -->
+    <fragment
+        android:id="@+id/roleSelectionFragment"
+        android:name="cl.duoc.museo.ui.fragments.RoleSelectionFragment"
+        android:label="Selección de Rol"
+        tools:layout="@layout/fragment_role_selection">
+        <action
+            android:id="@+id/action_roleSelectionFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_roleSelectionFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <!-- Pantalla 2: Registro -->
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="cl.duoc.museo.ui.fragments.RegisterFragment"
+        android:label="Registro de Usuario"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_registerFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_registerFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Pantalla 3: Inicio de Sesión -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="cl.duoc.museo.ui.fragments.LoginFragment"
+        android:label="Iniciar Sesión"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+    </fragment>
+
+    <!-- Pantalla 4: Dashboard Principal -->
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="cl.duoc.museo.ui.fragments.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard">
+        <action
+            android:id="@+id/action_dashboardFragment_to_qrScannerFragment"
+            app:destination="@id/qrScannerFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_mapFragment"
+            app:destination="@id/mapFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_catalogFragment"
+            app:destination="@id/catalogFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_favoritesFragment"
+            app:destination="@id/favoritesFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_notificationsFragment"
+            app:destination="@id/notificationsFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+    </fragment>
+
+    <!-- Pantalla 5: Mapa -->
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="cl.duoc.museo.ui.fragments.MapFragment"
+        android:label="Mapa de Museos"
+        tools:layout="@layout/fragment_map">
+        <action
+            android:id="@+id/action_mapFragment_to_museumDetailFragment"
+            app:destination="@id/museumDetailFragment" />
+    </fragment>
+
+    <!-- Pantalla 6: Detalle Museo -->
+    <fragment
+        android:id="@+id/museumDetailFragment"
+        android:name="cl.duoc.museo.ui.fragments.MuseumDetailFragment"
+        android:label="Detalle del Museo"
+        tools:layout="@layout/fragment_museum_detail" />
+
+    <!-- Pantalla 7: Escáner QR -->
+    <fragment
+        android:id="@+id/qrScannerFragment"
+        android:name="cl.duoc.museo.ui.fragments.QrScannerFragment"
+        android:label="Escáner QR"
+        tools:layout="@layout/fragment_qr_scanner">
+        <action
+            android:id="@+id/action_qrScannerFragment_to_qrResultFragment"
+            app:destination="@id/qrResultFragment" />
+    </fragment>
+
+    <!-- Pantalla 8: Resultado QR -->
+    <fragment
+        android:id="@+id/qrResultFragment"
+        android:name="cl.duoc.museo.ui.fragments.QrResultFragment"
+        android:label="Resultado QR"
+        tools:layout="@layout/fragment_qr_result">
+        <action
+            android:id="@+id/action_qrResultFragment_to_museumDetailFragment"
+            app:destination="@id/museumDetailFragment" />
+        <action
+            android:id="@+id/action_qrResultFragment_to_productDetailFragment"
+            app:destination="@id/productDetailFragment" />
+    </fragment>
+
+    <!-- Pantalla 9: Catálogo -->
+    <fragment
+        android:id="@+id/catalogFragment"
+        android:name="cl.duoc.museo.ui.fragments.CatalogFragment"
+        android:label="Catálogo"
+        tools:layout="@layout/fragment_catalog">
+        <action
+            android:id="@+id/action_catalogFragment_to_productDetailFragment"
+            app:destination="@id/productDetailFragment" />
+    </fragment>
+
+    <!-- Pantalla 10: Detalle Producto -->
+    <fragment
+        android:id="@+id/productDetailFragment"
+        android:name="cl.duoc.museo.ui.fragments.ProductDetailFragment"
+        android:label="Detalle Producto"
+        tools:layout="@layout/fragment_product_detail">
+        <action
+            android:id="@+id/action_productDetailFragment_to_cartFragment"
+            app:destination="@id/cartFragment" />
+    </fragment>
+
+    <!-- Pantalla 11: Favoritos -->
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="cl.duoc.museo.ui.fragments.FavoritesFragment"
+        android:label="Favoritos"
+        tools:layout="@layout/fragment_favorites">
+        <action
+            android:id="@+id/action_favoritesFragment_to_museumDetailFragment"
+            app:destination="@id/museumDetailFragment" />
+        <action
+            android:id="@+id/action_favoritesFragment_to_productDetailFragment"
+            app:destination="@id/productDetailFragment" />
+    </fragment>
+
+    <!-- Pantalla 12: Carrito -->
+    <fragment
+        android:id="@+id/cartFragment"
+        android:name="cl.duoc.museo.ui.fragments.CartFragment"
+        android:label="Carrito"
+        tools:layout="@layout/fragment_cart">
+        <action
+            android:id="@+id/action_cartFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+    </fragment>
+
+    <!-- Pantalla 13: Historial -->
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="cl.duoc.museo.ui.fragments.OrderHistoryFragment"
+        android:label="Historial de Solicitudes"
+        tools:layout="@layout/fragment_order_history" />
+
+    <!-- Pantalla 14: Notificaciones -->
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="cl.duoc.museo.ui.fragments.NotificationsFragment"
+        android:label="Notificaciones"
+        tools:layout="@layout/fragment_notifications">
+        <action
+            android:id="@+id/action_notificationsFragment_to_catalogFragment"
+            app:destination="@id/catalogFragment" />
+        <action
+            android:id="@+id/action_notificationsFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+        <action
+            android:id="@+id/action_notificationsFragment_to_museumDetailFragment"
+            app:destination="@id/museumDetailFragment" />
+        <action
+            android:id="@+id/action_notificationsFragment_to_productDetailFragment"
+            app:destination="@id/productDetailFragment" />
+    </fragment>
+
+    <!-- Pantalla 15: Perfil -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="cl.duoc.museo.ui.fragments.ProfileFragment"
+        android:label="Perfil"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profileFragment_to_welcomeFragment"
+            app:destination="@id/welcomeFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_profileFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+</navigation>

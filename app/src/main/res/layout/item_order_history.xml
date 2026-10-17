@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardOrder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="6dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="@color/surface_card">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="14dp">
+
+        <!-- Left Column: Order ID -->
+        <TextView
+            android:id="@+id/tvOrderId"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_blue"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="#2024-00123"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvStatusBadge"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Date -->
+        <TextView
+            android:id="@+id/tvOrderDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            tools:text="15 mar 2024"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvStatusBadge"
+            app:layout_constraintTop_toBottomOf="@id/tvOrderId" />
+
+        <!-- Product Count -->
+        <TextView
+            android:id="@+id/tvItemsCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            tools:text="2 productos"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnChevron"
+            app:layout_constraintTop_toBottomOf="@id/tvOrderDate" />
+
+        <!-- Total Price -->
+        <TextView
+            android:id="@+id/tvTotalPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/dark_blue"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="US$ 84"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnChevron"
+            app:layout_constraintTop_toBottomOf="@id/tvItemsCount" />
+
+        <!-- Right Column: Status Badge -->
+        <TextView
+            android:id="@+id/tvStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tag_rounded"
+            android:backgroundTint="@color/green_success_light"
+            android:textColor="@color/green_success"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp"
+            tools:text="Entregado"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Chevron Right Action Icon -->
+        <ImageView
+            android:id="@+id/btnChevron"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_back"
+            android:rotation="180"
+            app:tint="@color/text_secondary"
+            android:contentDescription="@null"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

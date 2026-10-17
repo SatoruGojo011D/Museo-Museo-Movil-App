@@ -1,0 +1,18 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Museo" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/accent_gold</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/gold_light_bg</item>
+        <item name="colorOnSecondaryContainer">@color/text_primary</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:navigationBarColor">@color/surface_card</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/background_warm</item>
+    </style>
+
+    <style name="Theme.Museo" parent="Base.Theme.Museo" />
+</resources>

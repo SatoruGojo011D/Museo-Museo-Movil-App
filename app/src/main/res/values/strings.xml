@@ -1,0 +1,178 @@
+<resources>
+    <string name="app_name">Museo de los Museos</string>
+    <string name="welcome_title">Museo de los Museos</string>
+    <string name="welcome_subtitle">Conecta, aprende y explora\nel patrimonio de Iberoamérica</string>
+    <string name="slogan">Conecta, aprende y explora el patrimonio de Iberoamérica</string>
+
+    <!-- Profile Strings -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_logout_label">Cerrar sesión</string>
+    <string name="profile_item_personal_data">Mis datos personales</string>
+    <string name="profile_item_shipping_addresses">Direcciones de envío</string>
+    <string name="profile_item_interests">Mis intereses</string>
+    <string name="profile_item_notifications">Configuración de notificaciones</string>
+    <string name="profile_item_accessibility">Accesibilidad</string>
+    <string name="profile_item_language">Idioma</string>
+    <string name="profile_item_help">Ayuda y soporte</string>
+    <string name="language_spanish">Español</string>
+
+    <!-- Notifications Strings -->
+    <string name="notifications_empty_state">No tienes notificaciones en esta categoría.</string>
+
+    <!-- Order History Strings -->
+    <string name="order_history_title">Mis solicitudes</string>
+    <string name="order_history_chip_all">Todas</string>
+    <string name="order_history_chip_pending">Pendientes</string>
+    <string name="order_history_chip_sent">Enviadas</string>
+    <string name="order_history_chip_delivered">Entregadas</string>
+    <string name="order_history_empty">No tienes solicitudes registradas en esta categoría.</string>
+
+    <!-- Cart Strings -->
+    <string name="cart_title">Mi carrito</string>
+    <string name="cart_shipping_title">Calcular envío</string>
+    <string name="cart_country_hint">País de destino</string>
+    <string name="cart_type_hint">Tipo de envío</string>
+    <string name="cart_subtotal_label">Subtotal</string>
+    <string name="cart_shipping_label">Envío</string>
+    <string name="cart_total_label">Total</string>
+    <string name="cart_delete_desc">Eliminar</string>
+    <string name="cart_empty_message">Tu carrito está vacío. Agrega productos o cursos desde el catálogo.</string>
+
+    <!-- Favorites Strings -->
+    <string name="favorites_title">Mis favoritos</string>
+    <string name="favorites_empty_state">No tienes elementos en tu colección de favoritos aún.</string>
+
+    <!-- Product Detail Strings -->
+    <string name="product_detail_quantity_label">Cantidad</string>
+    <string name="product_detail_availability_label">Disponibilidad</string>
+    <string name="product_detail_in_stock">En stock</string>
+    <string name="stepper_minus_desc">Disminuir</string>
+    <string name="stepper_plus_desc">Aumentar</string>
+
+    <!-- Catalog Strings -->
+    <string name="catalog_title">Catálogo</string>
+    <string name="catalog_filter_desc">Filtros</string>
+    <string name="catalog_search_hint">Buscar productos, cursos&#8230;</string>
+    <string name="catalog_add_desc">Agregar elemento</string>
+    <string name="catalog_chip_books">Libros</string>
+    <string name="catalog_chip_materials">Materiales</string>
+
+    <!-- QR Scanner Strings -->
+    <string name="qr_title">Escáner QR</string>
+    <string name="qr_subtitle">Escanea códigos de museos,\npublicaciones o productos.</string>
+    <string name="qr_flashlight">Linterna</string>
+    <string name="qr_gallery">Desde galería</string>
+    <string name="qr_instruction">Coloca el código dentro del marco\ny se escaneará automáticamente.</string>
+    <string name="qr_permission_denied">Se requiere permiso de cámara para usar el escáner QR.</string>
+
+    <!-- QR Result Screen Strings -->
+    <string name="qr_result_success_title">¡Código identificado!</string>
+    <string name="qr_result_success_sub">Hemos encontrado la siguiente\ninformación:</string>
+    <string name="qr_result_error_title">Código inválido o desconocido</string>
+    <string name="qr_result_error_sub">El código QR escaneado no pertenece al sistema de Museo de los Museos o expiró.</string>
+    <string name="qr_result_btn_rescan">Volver a escanear</string>
+    <string name="qr_result_badge_publication">Publicación</string>
+    <string name="qr_result_badge_museum">Museo Virtual</string>
+    <string name="qr_result_badge_product">Producto Tienda</string>
+    <string name="qr_result_item_title_default">El Arte Colonial\nen Iberoamérica</string>
+    <string name="qr_result_item_author_default">Museo de los Museos</string>
+    <string name="qr_result_item_desc_default">Libro digital sobre la historia del arte colonial en la región iberoamericana.</string>
+
+    <!-- Museum Detail Strings -->
+    <string name="museum_location_format">%1$s, Iberoamérica</string>
+    <string name="museum_detail_title_default">Museo Nacional\nde Arte Colonial</string>
+    <string name="museum_detail_location_default">Bogotá, Colombia</string>
+    <string name="museum_detail_desc_default">Recorre siglos de historia a través de nuestras colecciones de arte colonial iberoamericano. Explora salas virtuales, exposiciones y material educativo.</string>
+    <string name="museum_detail_tag_history">Historia</string>
+    <string name="museum_detail_tag_colonial">Arte colonial</string>
+    <string name="museum_detail_tag_virtual">Virtual</string>
+    <string name="museum_detail_reviews_default">(120 reseñas)</string>
+    <string name="btn_edit_record">Editar Ficha de Museo</string>
+    <string name="admin_pub_title">Panel de Administración: Publicación</string>
+    <string name="admin_pub_status">Estado: Publicado</string>
+    <string name="btn_approve">Aprobar</string>
+    <string name="btn_reject">Revisar</string>
+
+    <!-- Map Screen Strings -->
+    <string name="map_reviews_format">(%1$d reseñas)</string>
+    <string name="map_filter_all">Todos</string>
+    <string name="map_filter_country">País</string>
+    <string name="map_filter_project">Proyecto</string>
+
+    <!-- Dashboard Strings -->
+    <string name="dashboard_greeting_default">¡Hola, Maria!</string>
+    <string name="dashboard_subtitle_default">Sigamos explorando\nel conocimiento del mundo.</string>
+    <string name="dashboard_quick_map">Mapa</string>
+    <string name="dashboard_quick_catalog">Catálogo</string>
+    <string name="dashboard_quick_qr">Escáner QR</string>
+    <string name="dashboard_quick_favorites">Favoritos</string>
+    <string name="dashboard_quick_requests">Solicitudes</string>
+    <string name="dashboard_explora_title">Explora</string>
+    <string name="dashboard_card_courses_title">Cursos</string>
+    <string name="dashboard_card_courses_sub">Aprende con expertos</string>
+    <string name="dashboard_card_products_title">Productos</string>
+    <string name="dashboard_card_products_sub">Libros y más</string>
+    <string name="dashboard_card_virtual_title">Museos virtuales</string>
+    <string name="dashboard_card_virtual_sub">Recorre Iberoamérica</string>
+    <string name="dashboard_card_news_title">Novedades</string>
+    <string name="dashboard_card_news_sub">Exposiciones y eventos</string>
+    <string name="dashboard_destacados_title">Destacados</string>
+    <string name="dashboard_see_all">Ver todos</string>
+    <string name="dashboard_featured_text">Patrimonio que\nnos une</string>
+    <string name="dashboard_notifications_desc">Notificaciones</string>
+
+    <!-- Login & Role Selection Strings -->
+    <string name="login_title">Iniciar sesión</string>
+    <string name="login_subtitle">Selecciona tu tipo de cuenta</string>
+    <string name="login_role_admin_title">Administrador</string>
+    <string name="login_role_admin_sub">Gestión completa del sistema</string>
+    <string name="login_role_researcher_title">Investigador</string>
+    <string name="login_role_researcher_sub">Acceso a contenidos y proyectos</string>
+    <string name="login_role_client_title">Cliente</string>
+    <string name="login_role_client_sub">Explora, aprende y compra</string>
+    <string name="login_label_email">Correo electrónico</string>
+    <string name="login_label_password">Contraseña</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_to_register">¿Nuevo usuario? Regístrate aquí</string>
+
+    <!-- Register Screen Strings -->
+    <string name="register_title">Crear tu cuenta</string>
+    <string name="register_subtitle">Únete a la comunidad de\nMuseo de los Museos</string>
+    <string name="register_select_avatar">Selecciona un avatar</string>
+    <string name="register_already_have_account">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="register_back_desc">Regresar</string>
+    <string name="hint_full_name">Nombre completo</string>
+    <string name="hint_email">Correo electrónico</string>
+    <string name="hint_password">Contraseña</string>
+
+    <!-- Navigation Bottom Menu -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_catalog">Catálogo</string>
+    <string name="nav_notifications">Notificaciones</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Roles -->
+    <string name="role_admin">Administrador</string>
+    <string name="role_researcher">Investigador</string>
+    <string name="role_client">Cliente</string>
+    <string name="role_selection_title">Selección de Rol</string>
+
+    <!-- Buttons & Actions -->
+    <string name="btn_start">Comenzar</string>
+    <string name="btn_already_have_account">Ya tengo cuenta</string>
+    <string name="btn_login">Iniciar sesión</string>
+    <string name="btn_register">Registrarme</string>
+    <string name="btn_view_project">Ver proyecto virtual</string>
+    <string name="btn_save_favorites">Guardar en favoritos</string>
+    <string name="btn_remove_favorites">Quitar de favoritos</string>
+    <string name="btn_add_to_cart">Agregar al carrito</string>
+    <string name="btn_pay">Proceder al pago</string>
+    <string name="btn_view_detail">Ver detalle</string>
+    <string name="btn_logout">Cerrar sesión</string>
+
+    <!-- Statuses -->
+    <string name="status_delivered">Entregado</string>
+    <string name="status_pending">Pendiente</string>
+    <string name="status_in_transit">En camino</string>
+</resources>

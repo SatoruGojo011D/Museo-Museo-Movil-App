@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="360dp"
+    android:height="640dp"
+    android:viewportWidth="1080"
+    android:viewportHeight="1920">
+
+    <!-- Background Gradient: Deep exhibition atmosphere -->
+    <path
+        android:pathData="M0,0h1080v1920h-1080z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="270"
+                android:endColor="#0B0908"
+                android:centerColor="#1A1512"
+                android:startColor="#2B2018"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Museum Classical Arch and Columns Silhouette -->
+    <!-- Central Spotlight Effect -->
+    <path
+        android:pathData="M0,0 L1080,0 L880,1920 L200,1920 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="270"
+                android:endColor="#00000000"
+                android:startColor="#1A382C1E"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Arch Outline -->
+    <path
+        android:pathData="M 140,700 Q 540,300 940,700 L 940,1920 L 880,1920 L 880,730 Q 540,360 200,730 L 200,1920 L 140,1920 Z"
+        android:fillColor="#15100C" />
+
+    <!-- Left Pillar Accent -->
+    <path
+        android:pathData="M 220,740 L 280,740 L 280,1800 L 220,1800 Z"
+        android:fillColor="#1F1813" />
+
+    <!-- Right Pillar Accent -->
+    <path
+        android:pathData="M 800,740 L 860,740 L 860,1800 L 800,1800 Z"
+        android:fillColor="#1F1813" />
+
+    <!-- Pediment Top Triangle Silhouette -->
+    <path
+        android:pathData="M 100,680 L 540,240 L 980,680 Z"
+        android:fillColor="#120E0B" />
+
+    <!-- Soft Golden Ambient Light Orb -->
+    <path
+        android:pathData="M 540,500 m -350,0 a 350,350 0 1,0 700,0 a 350,350 0 1,0 -700,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="540"
+                android:centerY="500"
+                android:gradientRadius="350"
+                android:startColor="#25D4B886"
+                android:endColor="#00000000"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+</vector>

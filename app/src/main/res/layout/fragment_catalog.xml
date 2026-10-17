@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_warm"
+    tools:context=".ui.fragments.CatalogFragment">
+
+    <!-- 1. Top Header -->
+    <TextView
+        android:id="@+id/tvCatalogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/catalog_title"
+        android:textColor="@color/dark_blue"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/btnFilterOptions"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginEnd="20dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_filter"
+        app:tint="@color/dark_blue"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/catalog_filter_desc"
+        app:layout_constraintTop_toTopOf="@id/tvCatalogTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvCatalogTitle"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 2. Search Bar Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSearchBar"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="2dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="@color/surface_card"
+        app:layout_constraintTop_toBottomOf="@id/tvCatalogTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <ImageView
+                android:id="@+id/icSearchIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_search"
+                app:tint="@color/text_secondary"
+                android:contentDescription="@null"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <EditText
+                android:id="@+id/etSearch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="12dp"
+                android:background="@null"
+                android:hint="@string/catalog_search_hint"
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:inputType="text"
+                android:maxLines="1"
+                android:imeOptions="actionSearch"
+                android:autofillHints="none"
+                app:layout_constraintStart_toEndOf="@id/icSearchIcon"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 3. Category Filter Bar -->
+    <HorizontalScrollView
+        android:id="@+id/scrollViewCategories"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="20dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/cardSearchBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupCategories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCatAll"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/map_filter_all"
+                app:chipBackgroundColor="@color/surface_card"
+                app:chipStrokeColor="@color/dark_blue"
+                app:chipStrokeWidth="1.5dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCatCourses"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dashboard_card_courses_title"
+                app:chipBackgroundColor="@color/surface_card"
+                app:chipStrokeColor="@color/divider_color"
+                app:chipStrokeWidth="1dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCatBooks"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/catalog_chip_books"
+                app:chipBackgroundColor="@color/surface_card"
+                app:chipStrokeColor="@color/divider_color"
+                app:chipStrokeWidth="1dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCatMaterials"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/catalog_chip_materials"
+                app:chipBackgroundColor="@color/surface_card"
+                app:chipStrokeColor="@color/divider_color"
+                app:chipStrokeWidth="1dp" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+    </HorizontalScrollView>
+
+    <!-- 4. Catalog Grid (RecyclerView - 2 Columns) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCatalog"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="80dp"
+        app:layout_constraintTop_toBottomOf="@id/scrollViewCategories"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_catalog_product" />
+
+    <!-- 5. Administrator Floating Action Button (+) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddProduct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="24dp"
+        android:src="@drawable/ic_add"
+        app:tint="@color/white"
+        app:backgroundTint="@color/dark_blue"
+        android:contentDescription="@string/catalog_add_desc"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

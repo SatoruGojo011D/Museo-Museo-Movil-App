@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardProduct"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="@color/surface_card">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp">
+
+        <!-- 1. Product Image (Top, 16:10 aspect ratio) -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgProductThumb"
+            android:layout_width="0dp"
+            android:layout_height="115dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/bg_museum_interior"
+            android:contentDescription="@string/app_name"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 2. Category Badge -->
+        <TextView
+            android:id="@+id/tvProductCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/dark_blue"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_tag_teal_rounded"
+            android:paddingStart="6dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="2dp"
+            tools:text="Cursos"
+            app:layout_constraintTop_toBottomOf="@id/imgProductThumb"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 3. Title (Max 2 lines) -->
+        <TextView
+            android:id="@+id/tvProductTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="10dp"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Curso de Curaduría Virtual"
+            app:layout_constraintTop_toBottomOf="@id/tvProductCategory"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 4. Price (Bold, 15sp) -->
+        <TextView
+            android:id="@+id/tvProductPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/dark_blue"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="US$ 49"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnAddToCart"
+            app:layout_constraintTop_toBottomOf="@id/tvProductTitle"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- 5. Action Button (Shopping Cart Icon in Gold Circle) -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/btnAddToCart"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="10dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_cart"
+            app:tint="@color/black"
+            android:background="@color/beige_gold"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/btn_add_to_cart"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

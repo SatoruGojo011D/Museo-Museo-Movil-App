@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/background_warm"
+    tools:context=".ui.fragments.MuseumDetailFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="36dp">
+
+        <!-- 1. Hero Image at Top (Height ~280dp) -->
+        <ImageView
+            android:id="@+id/imgHero"
+            android:layout_width="0dp"
+            android:layout_height="280dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/bg_museum_interior"
+            android:contentDescription="@string/app_name"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Circular Overlaid Back Button -->
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white"
+            android:background="@drawable/bg_circle_translucent"
+            android:contentDescription="@string/register_back_desc"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 2. Main Content Container Below Hero Image -->
+
+        <!-- Title Row -->
+        <TextView
+            android:id="@+id/tvMuseumTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="12dp"
+            android:text="@string/museum_detail_title_default"
+            android:textColor="@color/dark_blue"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/imgHero"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnFavoriteHeader" />
+
+        <!-- Favorite Header Heart Icon -->
+        <ImageView
+            android:id="@+id/btnFavoriteHeader"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="24dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_favorite_border"
+            app:tint="@color/primary"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/btn_save_favorites"
+            app:layout_constraintTop_toTopOf="@id/tvMuseumTitle"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Location Text -->
+        <TextView
+            android:id="@+id/tvLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="24dp"
+            android:text="@string/museum_detail_location_default"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            app:drawableStartCompat="@drawable/ic_location_pin"
+            android:drawablePadding="6dp"
+            app:layout_constraintTop_toBottomOf="@id/tvMuseumTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Tags & Classification (ChipGroup) -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupTags"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="24dp"
+            app:singleLine="true"
+            app:layout_constraintTop_toBottomOf="@id/tvLocation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Chip 1: Historia -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipTag1"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/museum_detail_tag_history"
+                android:textColor="@color/primary"
+                android:textStyle="bold"
+                app:chipBackgroundColor="@color/gold_light_bg"
+                app:chipStrokeWidth="0dp"
+                app:chipCornerRadius="8dp" />
+
+            <!-- Chip 2: Arte colonial -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipTag2"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/museum_detail_tag_colonial"
+                android:textColor="@color/dark_blue"
+                android:textStyle="bold"
+                app:chipBackgroundColor="@color/teal_light_bg"
+                app:chipStrokeWidth="0dp"
+                app:chipCornerRadius="8dp" />
+
+            <!-- Chip 3: Virtual -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipTag3"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/museum_detail_tag_virtual"
+                android:textColor="@color/dark_blue"
+                android:textStyle="bold"
+                app:chipBackgroundColor="@color/teal_light_bg"
+                app:chipStrokeWidth="0dp"
+                app:chipCornerRadius="8dp" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- Rating Row -->
+        <LinearLayout
+            android:id="@+id/layoutRating"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="24dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toBottomOf="@id/chipGroupTags"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="3dp"
+                android:src="@drawable/ic_star"
+                android:contentDescription="@null" />
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="3dp"
+                android:src="@drawable/ic_star"
+                android:contentDescription="@null" />
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="6dp"
+                android:src="@drawable/ic_star"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/tvRatingScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="4.8" />
+
+            <TextView
+                android:id="@+id/tvRatingCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="@string/museum_detail_reviews_default"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- Description Paragraph -->
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            android:text="@string/museum_detail_desc_default"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.2"
+            app:layout_constraintTop_toBottomOf="@id/layoutRating"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 3. Role-Based Extension Panels -->
+
+        <!-- Admin Publication State Card (Visible only to Admin role) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPublicationState"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="24dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/card_selected_bg"
+            app:strokeColor="@color/beige_gold"
+            app:strokeWidth="1.5dp"
+            app:layout_constraintTop_toBottomOf="@id/tvDescription"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/admin_pub_title"
+                    android:textColor="@color/dark_blue"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPublicationStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/admin_pub_status"
+                    android:textColor="@color/green_success"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnApproveRecord"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="@string/btn_approve"
+                        app:backgroundTint="@color/dark_blue"
+                        app:cornerRadius="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRejectRecord"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/btn_reject"
+                        android:textColor="@color/primary"
+                        app:strokeColor="@color/primary"
+                        app:cornerRadius="12dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Investigator Edit Record Button (Visible only to Researcher role) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEditRecord"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            android:visibility="gone"
+            android:text="@string/btn_edit_record"
+            android:textColor="@color/dark_blue"
+            app:backgroundTint="@color/teal_light_bg"
+            app:icon="@drawable/ic_edit"
+            app:iconTint="@color/dark_blue"
+            app:cornerRadius="24dp"
+            app:layout_constraintTop_toBottomOf="@id/cardPublicationState"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible" />
+
+        <!-- 4. Action Buttons (Bottom Area) -->
+
+        <!-- Primary Action Button: "Ver proyecto virtual" -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnVirtualTour"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="24dp"
+            android:text="@string/btn_view_project"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/beige_gold"
+            app:cornerRadius="24dp"
+            app:icon="@drawable/ic_external_link"
+            app:iconTint="@color/black"
+            app:iconGravity="textStart"
+            app:layout_constraintTop_toBottomOf="@id/btnEditRecord"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Secondary Action Button: "Guardar en favoritos" -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFavoriteToggle"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="24dp"
+            android:text="@string/btn_save_favorites"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:strokeColor="@color/text_primary"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="24dp"
+            app:icon="@drawable/ic_favorite_border"
+            app:iconTint="@color/primary"
+            app:iconGravity="textStart"
+            app:layout_constraintTop_toBottomOf="@id/btnVirtualTour"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>
