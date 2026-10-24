@@ -1,6 +1,7 @@
 package cl.duoc.museo.ui.viewmodels
 
 import android.app.Application
+import android.net.Uri
 import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +15,15 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.util.UUID
 
 data class ProfileUiState(
     val name: String = "María Fernanda López",
@@ -37,25 +46,26 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    private val _logoutEvent = MutableSharedFlow<Unit>()
-    val logoutEvent: SharedFlow<Unit> = _logoutEvent.asSharedFlow()
-
     private val _messageEvent = MutableSharedFlow<String>()
     val messageEvent: SharedFlow<String> = _messageEvent.asSharedFlow()
+    private var profileLoadJob: Job? = null
 
     init {
         loadUserProfile()
     }
 
     fun loadUserProfile() {
+        profileLoadJob?.cancel()
+        val userId = sessionManager.getUserId()
         val email = sessionManager.getUserEmail()
         val sessionName = sessionManager.getUserName()
         val role = sessionManager.getUserRole()
+        val sessionAvatar = sessionManager.getUserAvatar()
 
-        viewModelScope.launch {
-            val dbUser = repository.getUserByEmail(email)
+        profileLoadJob = viewModelScope.launch {
+            val dbUser = repository.getUserById(userId)
             val name = dbUser?.name ?: sessionName
-            val avatar = dbUser?.avatarRes ?: "avatar_1"
+            val avatar = dbUser?.avatarRes ?: sessionAvatar
 
             // Client role exclusive options ("Direcciones de envío", "Mis intereses")
             val isClient = (role == Role.CLIENT)
@@ -186,16 +196,86 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun saveProfilePhoto(uri: Uri, temporaryFile: File? = null) {
+        profileLoadJob?.cancel()
+        viewModelScope.launch {
+            var photoFile: File? = null
+            try {
+                photoFile = withContext(Dispatchers.IO) {
+                    try {
+                        val source = getApplication<Application>().contentResolver
+                            .openInputStream(uri)
+                            ?: throw IOException("No se pudo abrir la imagen seleccionada.")
+                        source.use { input ->
+                            savePhotoFile { output -> input.copyTo(output) }
+                        }
+                    } finally {
+                        temporaryFile?.delete()
+                    }
+                }
+                persistProfilePhoto(checkNotNull(photoFile))
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                photoFile?.delete()
+                _messageEvent.emit(
+                    "No se pudo guardar la foto: ${exception.localizedMessage ?: "inténtalo de nuevo."}",
+                )
+            }
+        }
+    }
+
+    private fun savePhotoFile(writeImage: (FileOutputStream) -> Unit): File {
+        val userId = sessionManager.getUserId()
+        val photoId = UUID.randomUUID().toString()
+        val directory = getApplication<Application>().filesDir
+        val destination = File(directory, "profile_photo_${userId}_$photoId.jpg")
+        val temporary = File(directory, "profile_photo_${userId}_$photoId.tmp")
+        try {
+            FileOutputStream(temporary).use(writeImage)
+            if (temporary.length() == 0L) throw IOException("La imagen seleccionada está vacía.")
+            if (!temporary.renameTo(destination)) {
+                throw IOException("No se pudo guardar la foto en el dispositivo.")
+            }
+            return destination
+        } finally {
+            temporary.delete()
+        }
+    }
+
+    private suspend fun persistProfilePhoto(photoFile: File) {
+        val userId = sessionManager.getUserId()
+        val state = _uiState.value
+        val photoReference = "$PROFILE_PHOTO_PREFIX${photoFile.absolutePath}"
+        val user = repository.getUserById(userId)
+        if (user != null) repository.updateUser(user.copy(avatarRes = photoReference))
+        sessionManager.saveUserSession(
+            userId,
+            user?.name ?: sessionManager.getUserName(),
+            user?.email ?: sessionManager.getUserEmail(),
+            user?.role ?: sessionManager.getUserRole(),
+            photoReference,
+        )
+        _uiState.value = state.copy(
+            name = user?.name ?: sessionManager.getUserName(),
+            email = user?.email ?: sessionManager.getUserEmail(),
+            role = user?.role ?: sessionManager.getUserRole(),
+            avatarRes = photoReference,
+        )
+        _messageEvent.emit("Foto de perfil actualizada.")
+    }
+
     fun logout() {
         sessionManager.clearSession()
-        viewModelScope.launch {
-            _logoutEvent.emit(Unit)
-        }
     }
 
     private fun emitMessage(message: String) {
         viewModelScope.launch {
             _messageEvent.emit(message)
         }
+    }
+
+    companion object {
+        const val PROFILE_PHOTO_PREFIX = "profile-photo:"
     }
 }

@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import cl.duoc.museo.R
 import cl.duoc.museo.data.model.NotificationItem
 import cl.duoc.museo.databinding.ItemNotificationBinding
+import cl.duoc.museo.utils.ViewAnimations
 
 class NotificationsAdapter(
     private val onNotificationClick: (NotificationItem) -> Unit,
@@ -35,6 +36,7 @@ class NotificationsAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: NotificationItem) {
+            ViewAnimations.installTapFeedback(binding.root)
             binding.tvNotifTitle.text = item.title
             binding.tvNotifMessage.text = item.message
             binding.tvTimestamp.text = item.timestamp

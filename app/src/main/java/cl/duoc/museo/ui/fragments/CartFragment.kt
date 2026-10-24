@@ -18,6 +18,8 @@ import cl.duoc.museo.databinding.FragmentCartBinding
 import cl.duoc.museo.ui.adapters.CartAdapter
 import cl.duoc.museo.ui.viewmodels.CartViewModel
 import cl.duoc.museo.ui.viewmodels.CheckoutEvent
+import cl.duoc.museo.utils.MoneyFormatter
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 class CartFragment : Fragment() {
@@ -118,6 +120,10 @@ class CartFragment : Fragment() {
         binding.btnCheckout.setOnClickListener {
             viewModel.checkout()
         }
+
+        binding.btnOrderHistory.setOnClickListener {
+            findNavController().navigate(R.id.action_cartFragment_to_historyFragment)
+        }
     }
 
     private fun observeViewModel() {
@@ -135,19 +141,25 @@ class CartFragment : Fragment() {
 
                 launch {
                     viewModel.subtotal.collect { sub ->
-                        binding.tvSubtotalValue.text = "US$ " + sub.toInt().toString()
+                        binding.tvSubtotalValue.text = MoneyFormatter.formatUsd(sub)
+                    }
+                }
+
+                launch {
+                    viewModel.vat.collect { vat ->
+                        binding.tvVatValue.text = MoneyFormatter.formatUsd(vat)
                     }
                 }
 
                 launch {
                     viewModel.shippingCost.collect { ship ->
-                        binding.tvShippingValue.text = "US$ " + ship.toInt().toString()
+                        binding.tvShippingValue.text = MoneyFormatter.formatUsd(ship)
                     }
                 }
 
                 launch {
                     viewModel.totalAmount.collect { total ->
-                        binding.tvTotalValue.text = "US$ " + total.toInt().toString()
+                        binding.tvTotalValue.text = MoneyFormatter.formatUsd(total)
                     }
                 }
 
@@ -155,12 +167,13 @@ class CartFragment : Fragment() {
                     viewModel.checkoutEvent.collect { event ->
                         when (event) {
                             is CheckoutEvent.Success -> {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "¡Pago procesado con éxito! Total: US$ ${event.orderTotal.toInt()}",
-                                    Toast.LENGTH_LONG,
-                                ).show()
-                                findNavController().navigate(R.id.action_cartFragment_to_historyFragment)
+                                val arguments = Bundle().apply {
+                                    putString("receiptJson", Gson().toJson(event.receipt))
+                                }
+                                findNavController().navigate(
+                                    R.id.action_cartFragment_to_receiptFragment,
+                                    arguments,
+                                )
                             }
                             is CheckoutEvent.Error -> {
                                 Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()

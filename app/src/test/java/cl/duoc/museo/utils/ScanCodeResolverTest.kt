@@ -25,6 +25,27 @@ class ScanCodeResolverTest {
     }
 
     @Test
+    fun resolvesVideoJsonAndKeepsItsSafeUrl() {
+        val content = ScanCodeResolver.resolve(
+            """{"titulo":"Video de ejemplo","descripcion":"Descripción del video","url":"https://www.youtube.com/shorts/LcrPS1-jacs"}""",
+        )
+
+        assertEquals(ScannedContentKind.VIDEO, content?.kind)
+        assertEquals("Video de ejemplo", content?.title)
+        assertEquals("Descripción del video", content?.description)
+        assertEquals("https://www.youtube.com/shorts/LcrPS1-jacs", content?.externalUrl)
+    }
+
+    @Test
+    fun rejectsVideoJsonWithUnsafeOrInvalidUrls() {
+        val unsafe = """{"titulo":"Video","descripcion":"Descripción","url":"javascript:alert(1)"}"""
+        val malformed = """{"titulo":"Video","descripcion":"Descripción","url":"https://bad url"}"""
+
+        assertNull(ScanCodeResolver.resolve(unsafe))
+        assertNull(ScanCodeResolver.resolve(malformed))
+    }
+
+    @Test
     fun rejectsUnknownAndEmptyCodes() {
         assertNull(ScanCodeResolver.resolve("UNKNOWN_123"))
         assertNull(ScanCodeResolver.resolve("  "))

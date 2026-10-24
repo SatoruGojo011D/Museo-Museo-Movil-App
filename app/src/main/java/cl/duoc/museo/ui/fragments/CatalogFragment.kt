@@ -118,6 +118,10 @@ class CatalogFragment : Fragment() {
     }
 
     private fun setupFabAndFilterButtons() {
+        binding.btnOpenCart.setOnClickListener {
+            findNavController().navigate(R.id.action_catalogFragment_to_cartFragment)
+        }
+
         binding.btnFilterOptions.setOnClickListener {
             val sortOptions = arrayOf(
                 "Recomendados",

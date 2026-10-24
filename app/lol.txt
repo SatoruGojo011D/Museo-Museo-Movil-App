@@ -1,0 +1,169 @@
+Lector de código QR en Android (Kotlin + Jetpack Compose)
+App Android, lo más simple posible, que lee un código QR con la cámara del celular, muestra ordenados los datos que trae adentro (un JSON) y deja un link para abrir el video en YouTube.
+Toda la app está en un solo archivo, MainActivity.kt, comentado línea por línea. Está hecha para abrirse con Android Studio.
+1. Qué hace
+Esquema de la pantalla (es un dibujo para entender la idea, no una captura):
+┌────────────────────────────────────────┐
+│ Lector de código QR                    │
+│ ¡Código QR leído correctamente!        │
+│ ┌────────────────────────────────────┐ │
+│ │        Escanear código QR          │ │  ← abre la cámara
+│ └────────────────────────────────────┘ │
+│ ┌────────────────────────────────────┐ │
+│ │ Título                             │ │
+│ │ Automatiza Excel con Claude IA ... │ │
+│ │ Descripción                        │ │
+│ │ Aprende a automatizar tus tareas...│ │
+│ │ Link del video                     │ │
+│ │ https://www.youtube.com/shorts/... │ │  ← al tocarlo abre YouTube
+│ │ Toca el link para abrir el video.  │ │
+│ └────────────────────────────────────┘ │
+└────────────────────────────────────────┘
+1.
+Tocas Escanear código QR y se abre la cámara.
+2.
+Apuntas al QR; se lee solo, sin tocar nada más.
+3.
+La app muestra el título, la descripción y el link.
+4.
+Tocas el link y Android abre el video (en la app de YouTube si la tienes, o en el navegador).
+2. Qué hay dentro del QR
+Un código QR es solo una forma de guardar texto dentro de una imagen. En este ejercicio, ese texto es un JSON: un formato para ordenar datos en pares "clave": "valor".
+El archivo json_qr_video.txt tiene exactamente el JSON que guarda el QR de ejemplo, y qr_video.png es la imagen de ese QR:
+{
+  "titulo": "Automatiza Excel con Claude IA: El truco definitivo",
+  "descripcion": "Aprende a automatizar tus tareas y tablas de Excel ...",
+  "url": "https://www.youtube.com/shorts/LcrPS1-jacs"
+}
+Clave
+Qué contiene
+Qué hace la app con ella
+titulo
+Nombre del video
+Lo muestra bajo la etiqueta "Título"
+descripcion
+Resumen del video
+Lo muestra bajo la etiqueta "Descripción"
+url
+Dirección del video en YouTube
+La muestra como link que se puede tocar
+El JSON del .txt está escrito en una sola línea para que ocupe menos espacio dentro del QR. Arriba se muestra en varias líneas solo para que sea más fácil de leer.
+3. Cómo funciona
+ Botón          Escáner de Google          JSON (texto)          Objeto Video          Pantalla
+┌────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌───────────────┐    ┌────────────┐
+│ Tocar  │──▶ │ abre la cámara y │──▶ │ {"titulo":"..",  │──▶ │ titulo        │──▶ │ tarjeta +  │
+│        │    │ lee el QR        │    │  "url":".."}     │    │ descripcion   │    │ link       │
+└────────┘    └──────────────────┘    └──────────────────┘    │ url           │    └─────┬──────┘
+ escanearQr()    Google Code Scanner      rawValue            └───────────────┘          │ toque
+                                                               textoAVideo()             ▼
+                                                                                 abre YouTube
+                                                                               (LocalUriHandler)
+Paso
+Qué ocurre
+Función en MainActivity.kt
+1
+Se abre el escáner y se lee el QR
+escanearQr()
+2
+El texto leído (un JSON) se convierte en un objeto Video
+textoAVideo()
+3
+Los datos se guardan en una variable de estado y Compose redibuja la pantalla
+PantallaQr()
+4
+Se dibujan título, descripción y link
+TarjetaVideo() y Dato()
+5
+Al tocar el link, se abre el video
+abridorDeLinks.openUri(...)
+4. Requisitos
+Qué necesitas
+Para qué
+Android Studio (trae su propio JDK 21)
+Abrir, compilar y ejecutar el proyecto
+Android SDK 36
+Compilar (se instala desde Android Studio)
+Un celular con Android 8.0 (API 26) o superior, con Google Play services
+Escanear el QR
+Un emulador con Google Play (alternativa al celular)
+Probar sin celular; el celular real es más cómodo para la cámara
+5. Cómo ejecutarla
+En Android Studio
+1.
+File → Open y elige la carpeta qr.
+2.
+Si aparece "Gradle files have changed since last project sync", pulsa Sync Now. La primera vez necesita Internet: tiene que descargar el escáner de Google, que todavía no está en la caché de Gradle. Después queda guardado.
+3.
+Conecta el celular (con Depuración USB activada en Opciones de desarrollador) o inicia un emulador.
+4.
+Elige el dispositivo en la barra superior y pulsa ▶ Run.
+Probarla con el QR de ejemplo
+1.
+En el computador, abre qr_video.png y déjalo en pantalla, bastante grande y con buen brillo.
+2.
+En la app toca Escanear código QR y apunta la cámara del celular a la pantalla del computador.
+3.
+Aparecen título, descripción y link. Toca el link para abrir el video.
+Desde la terminal (PowerShell)
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+.\gradlew.bat installDebug
+installDebug compila e instala la app en el celular o emulador conectado. El APK queda en app\build\outputs\apk\debug\app-debug.apk.
+6. Estructura del proyecto
+qr/
+├── qr_video.png                 ← Imagen del QR de ejemplo (para probar)
+├── json_qr_video.txt            ← El JSON que contiene ese QR (solo para que lo veas)
+├── README.md                    ← Este archivo
+├── build.gradle.kts             ← Plugins del proyecto
+├── settings.gradle.kts          ← Nombre del proyecto y módulos
+├── gradle.properties            ← Opciones generales de Gradle
+├── gradle/
+│   ├── libs.versions.toml       ← Versiones de plugins y librerías (aquí está el escáner)
+│   └── wrapper/                 ← Gradle 8.14.3 empaquetado dentro del proyecto
+└── app/
+    ├── build.gradle.kts         ← Configuración de la app y sus dependencias
+    └── src/main/
+        ├── AndroidManifest.xml  ← "Tarjeta de presentación" de la app (comentado)
+        ├── java/com/ejemplos/qr/
+        │   └── MainActivity.kt  ← TODO el código de la app, comentado
+        └── res/                 ← Nombre de la app, tema e ícono
+7. Explicación del código (MainActivity.kt)
+El archivo se lee de arriba hacia abajo:
+1.
+data class Video: la "caja" donde guardamos titulo, descripcion y url.
+2.
+class MainActivity: la pantalla. Solo prepara Compose y llama a PantallaQr().
+3.
+PantallaQr(): dibuja el título, el botón y, si ya se leyó un QR, la tarjeta con los datos.
+4.
+TarjetaVideo() y Dato(): dibujan los datos ordenados y el link.
+5.
+escanearQr(): abre el escáner de Google y avisa cuando termina.
+6.
+textoAVideo(): convierte el texto JSON en un objeto Video.
+Las ideas de Kotlin y Android que aparecen, de la más simple a la menos obvia:
+Idea
+Qué significa
+@Composable
+La función dibuja interfaz. Su nombre empieza con mayúscula.
+var video by remember { mutableStateOf<Video?>(null) }
+Una variable que Compose vigila: cuando cambia, la pantalla se redibuja sola. Video? significa "un Video o nada (null)".
+video?.let { datos -> ... }
+"Si video no es nulo, ejecuta esto usando su valor como datos". Por eso la tarjeta solo aparece después de leer un QR.
+alLeer: (String) -> Unit
+Una función recibida como parámetro. escanearQr() la llama cuando el QR ya se leyó, y le entrega el texto.
+GmsBarcodeScanning.getClient(...).startScan()
+Aquí se abre la cámara y se lee el QR. Devuelve el resultado con "listeners" (addOnSuccessListener, addOnCanceledListener, addOnFailureListener).
+codigo.rawValue
+El texto completo del QR.
+JSONObject(texto)
+Convierte el texto en un objeto JSON. Viene incluido en Android, no hay que instalar nada.
+json.optString("titulo", "(sin título)")
+Saca el valor de titulo; si el JSON no lo trae, usa el texto por defecto en vez de dar error.
+try { ... } catch (e: JSONException)
+Si el QR no contenía un JSON válido, en vez de cerrar la app devolvemos null y mostramos un mensaje.
+LocalUriHandler.current y openUri(url)
+Le pide a Android que abra un link con la app adecuada (YouTube o el navegador).
+video.url.startsWith("https://")
+Seguridad: un QR puede contener cualquier cosa, así que solo se convierte en link lo que empiece con http:// o https://.
+Scaffold { paddingInterno -> ... }
+Esqueleto de pantalla; entrega los márgenes para que el contenido no quede bajo la barra de estado.

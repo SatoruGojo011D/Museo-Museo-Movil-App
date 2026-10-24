@@ -16,7 +16,7 @@ import cl.duoc.museo.R
 import cl.duoc.museo.data.model.MuseumMapItem
 import cl.duoc.museo.databinding.FragmentVirtualMuseumsMapBinding
 import cl.duoc.museo.ui.viewmodels.MapViewModel
-import cl.duoc.museo.ui.views.IberoamericaMapView
+import cl.duoc.museo.ui.views.ChileOpenStreetMapView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
@@ -26,7 +26,7 @@ open class VirtualMuseumsMapFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: MapViewModel by viewModels()
-    private var mapView: IberoamericaMapView? = null
+    private var mapView: ChileOpenStreetMapView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,7 +47,7 @@ open class VirtualMuseumsMapFragment : Fragment() {
     }
 
     private fun setupMapFragment() {
-        mapView = IberoamericaMapView(requireContext()).apply {
+        mapView = ChileOpenStreetMapView(requireContext()).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -57,6 +57,9 @@ open class VirtualMuseumsMapFragment : Fragment() {
             }
         }
         binding.mapContainer.addView(mapView)
+        binding.btnZoomIn.setOnClickListener { mapView?.zoomInMap() }
+        binding.btnZoomOut.setOnClickListener { mapView?.zoomOutMap() }
+        binding.btnCenterChile.setOnClickListener { mapView?.centerOnChile() }
         renderMarkers(viewModel.museums.value)
     }
 
@@ -64,31 +67,19 @@ open class VirtualMuseumsMapFragment : Fragment() {
         binding.chipTodos.setOnClickListener {
             viewModel.applyFilter("Todos")
         }
-        binding.chipCountry.setOnClickListener {
-            val countries = viewModel.museums.value
-                .map { it.country }
-                .distinct()
-                .sorted()
-            if (countries.isEmpty()) {
-                Toast.makeText(requireContext(), "No hay países para filtrar.", Toast.LENGTH_SHORT).show()
-            } else {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Filtrar por país")
-                    .setItems(countries.toTypedArray()) { _, which ->
-                        viewModel.applyFilter("country:${countries[which]}")
-                    }
-                    .show()
-            }
-        }
         binding.chipProject.setOnClickListener {
-            val projects = viewModel.museums.value.map { it.category }.distinct().sorted()
+            val projects = viewModel.availableProjects()
             if (projects.isEmpty()) {
+                renderActiveFilter(viewModel.activeFilter.value)
                 Toast.makeText(requireContext(), "No hay proyectos para filtrar.", Toast.LENGTH_SHORT).show()
             } else {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Filtrar por proyecto")
                     .setItems(projects.toTypedArray()) { _, which ->
                         viewModel.applyFilter("project:${projects[which]}")
+                    }
+                    .setOnCancelListener {
+                        renderActiveFilter(viewModel.activeFilter.value)
                     }
                     .show()
             }
@@ -133,8 +124,17 @@ open class VirtualMuseumsMapFragment : Fragment() {
                         renderMarkers(viewModel.museums.value)
                     }
                 }
+
+                launch {
+                    viewModel.activeFilter.collect(::renderActiveFilter)
+                }
             }
         }
+    }
+
+    private fun renderActiveFilter(filter: String) {
+        binding.chipTodos.isChecked = filter == "Todos"
+        binding.chipProject.isChecked = filter.startsWith("project:")
     }
 
     private fun renderMarkers(museumList: List<MuseumMapItem>) {
@@ -148,6 +148,16 @@ open class VirtualMuseumsMapFragment : Fragment() {
         binding.tvTag2.text = museum.tag2
         binding.tvRatingScore.text = museum.rating.toString()
         binding.tvRatingCount.text = getString(R.string.map_reviews_format, museum.reviewsCount)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView?.onResume()
+    }
+
+    override fun onPause() {
+        mapView?.onPause()
+        super.onPause()
     }
 
     override fun onDestroyView() {

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.fragments.VirtualMuseumsMapFragment">
 
-    <!-- Offline interactive map container; no API key is required. -->
+    <!-- OpenStreetMap base layer; no API key is required. -->
     <FrameLayout
         android:id="@+id/mapContainer"
         android:layout_width="0dp"
@@ -15,6 +15,48 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/mapControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/cardMuseumInfo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scrollViewFilters">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnZoomIn"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/map_zoom_in"
+            android:text="+"
+            android:textSize="22sp"
+            app:backgroundTint="@color/surface_card" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnZoomOut"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/map_zoom_out"
+            android:text="−"
+            android:textSize="22sp"
+            app:backgroundTint="@color/surface_card" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCenterChile"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/map_center_chile"
+            android:text="CL"
+            android:textSize="14sp"
+            app:backgroundTint="@color/surface_card" />
+    </LinearLayout>
 
     <!-- 2. Top Filter Bar (Overlaid on Map) -->
     <HorizontalScrollView
@@ -45,16 +87,6 @@
                 app:chipBackgroundColor="@color/surface_card"
                 app:chipStrokeColor="@color/beige_gold"
                 app:chipStrokeWidth="1.5dp" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipCountry"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/map_filter_country"
-                app:chipBackgroundColor="@color/surface_card"
-                app:chipStrokeColor="@color/divider_color"
-                app:chipStrokeWidth="1dp" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipProject"

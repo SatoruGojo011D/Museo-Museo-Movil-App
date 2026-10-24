@@ -8,6 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import cl.duoc.museo.R
 import cl.duoc.museo.data.model.CartItem
 import cl.duoc.museo.databinding.ItemCartProductBinding
+import cl.duoc.museo.utils.MoneyFormatter
+import cl.duoc.museo.utils.ViewAnimations
+import com.bumptech.glide.Glide
 
 class CartAdapter(
     private val onIncrementClick: (CartItem) -> Unit,
@@ -34,16 +37,22 @@ class CartAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: CartItem) {
+            ViewAnimations.installTapFeedback(binding.root)
             binding.tvCartItemTitle.text = item.productName
-            binding.tvCartItemPrice.text = "US$ ${item.price.toInt()}"
+            binding.tvCartItemPrice.text = MoneyFormatter.formatUsd(item.price)
             binding.tvCartQuantity.text = item.quantity.toString()
 
-            val imageRes = if (item.productName.contains("Curso", ignoreCase = true)) {
+            val placeholder = if (item.productName.contains("Curso", ignoreCase = true)) {
                 R.drawable.ic_catalog
             } else {
                 R.drawable.bg_museum_interior
             }
-            binding.imgCartThumb.setImageResource(imageRes)
+            Glide.with(binding.imgCartThumb)
+                .load(item.imageUrl.takeIf(String::isNotBlank))
+                .placeholder(placeholder)
+                .error(placeholder)
+                .centerCrop()
+                .into(binding.imgCartThumb)
 
             binding.btnCartPlus.setOnClickListener { onIncrementClick(item) }
             binding.btnCartMinus.setOnClickListener { onDecrementClick(item) }

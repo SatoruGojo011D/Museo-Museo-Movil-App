@@ -50,7 +50,10 @@
             android:layout_marginTop="20dp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_person"
-            android:contentDescription="@string/app_name"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/profile_photo_change"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
             app:layout_constraintTop_toBottomOf="@id/btnBack"
             app:layout_constraintStart_toStartOf="parent" />
@@ -518,6 +521,8 @@
             android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"
             android:layout_marginEnd="20dp"
+            android:clickable="true"
+            android:focusable="true"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
             app:strokeColor="#DC3545"
@@ -531,10 +536,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true">
+                android:paddingEnd="16dp">
 
                 <ImageView
                     android:id="@+id/icLogout"

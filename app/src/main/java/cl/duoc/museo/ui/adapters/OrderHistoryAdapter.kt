@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import cl.duoc.museo.data.model.Order
 import cl.duoc.museo.databinding.ItemOrderHistoryBinding
+import cl.duoc.museo.utils.ViewAnimations
 
 class OrderHistoryAdapter(
     private val onOrderClick: (Order) -> Unit,
@@ -32,6 +33,7 @@ class OrderHistoryAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(order: Order) {
+            ViewAnimations.installTapFeedback(binding.root)
             val formattedId = if (order.id > 0) {
                 "#2024-${order.id.toString().padStart(5, '0')}"
             } else {

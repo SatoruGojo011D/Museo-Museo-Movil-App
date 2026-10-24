@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import java.io.File
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -17,6 +18,8 @@ import cl.duoc.museo.R
 import cl.duoc.museo.data.model.Role
 import cl.duoc.museo.databinding.FragmentDashboardBinding
 import cl.duoc.museo.ui.viewmodels.DashboardViewModel
+import cl.duoc.museo.ui.viewmodels.ProfileViewModel
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
 class DashboardFragment : Fragment() {
@@ -133,13 +136,23 @@ class DashboardFragment : Fragment() {
                         if (state.hasUnreadNotifications) View.VISIBLE else View.GONE
                     applyRoleLayout(state.role)
 
-                    val avatarDrawable = when (state.avatarResId) {
-                        "avatar_2" -> R.drawable.ic_museum
-                        "avatar_3" -> R.drawable.ic_catalog
-                        "avatar_4" -> R.drawable.ic_settings
-                        else -> R.drawable.ic_person
+                    if (state.avatarResId.startsWith(ProfileViewModel.PROFILE_PHOTO_PREFIX)) {
+                        val photoPath = state.avatarResId.removePrefix(ProfileViewModel.PROFILE_PHOTO_PREFIX)
+                        Glide.with(binding.imgAvatar)
+                            .load(File(photoPath))
+                            .placeholder(R.drawable.ic_person)
+                            .error(R.drawable.ic_person)
+                            .centerCrop()
+                            .into(binding.imgAvatar)
+                    } else {
+                        val avatarDrawable = when (state.avatarResId) {
+                            "avatar_2" -> R.drawable.ic_museum
+                            "avatar_3" -> R.drawable.ic_catalog
+                            "avatar_4" -> R.drawable.ic_settings
+                            else -> R.drawable.ic_person
+                        }
+                        binding.imgAvatar.setImageResource(avatarDrawable)
                     }
-                    binding.imgAvatar.setImageResource(avatarDrawable)
                 }
             }
         }

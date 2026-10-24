@@ -54,7 +54,9 @@ class FavoritesFragment : Fragment() {
         favoritesAdapter = FavoritesAdapter(
             onItemClick = { favorite ->
                 val isResource = favorite.classification.contains("Recurso", ignoreCase = true) ||
-                    favorite.classification.contains("Libro", ignoreCase = true)
+                    favorite.classification.contains("Libro", ignoreCase = true) ||
+                    favorite.classification.contains("Curso", ignoreCase = true) ||
+                    favorite.classification.contains("Material", ignoreCase = true)
 
                 val bundle = Bundle().apply {
                     putString(if (isResource) "productId" else "museumId", favorite.museumId)

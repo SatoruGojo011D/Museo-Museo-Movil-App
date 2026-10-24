@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import cl.duoc.museo.data.local.AppDatabase
 import cl.duoc.museo.data.model.CatalogItem
+import cl.duoc.museo.data.model.DefaultCatalogItems
 import cl.duoc.museo.data.model.Product
 import cl.duoc.museo.data.model.Role
 import cl.duoc.museo.data.repository.MuseumRepository
@@ -71,12 +72,13 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                             category = product.category.ifBlank { "Libros" },
                             price = product.price,
                             imageUrl = product.imageUrl,
+                            availability = if (product.stock > 0) "En stock" else "Agotado",
                             description = product.description,
                             type = if (product.category == "Cursos") "Curso" else "Producto",
                         )
                     }
                 } else {
-                    getMockCatalogItems()
+                    DefaultCatalogItems.items
                 }
                 repository.cacheCatalogItems(loadedItems)
                 loadedItems
@@ -199,77 +201,30 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
     fun addToCart(item: CatalogItem, onAdded: () -> Unit) {
         val userId = sessionManager.getUserId()
         viewModelScope.launch {
-            val product = Product(
-                id = item.id,
-                name = item.title,
-                category = item.category,
-                price = item.price,
-                imageUrl = item.imageUrl,
-                description = item.description,
-                stock = 10,
-            )
-            repository.addToCart(userId, product, quantity = 1)
-            onAdded()
+            try {
+                if (item.availability.equals("Agotado", ignoreCase = true)) {
+                    _events.emit(CatalogEvent.Message("Este producto está agotado y no se puede agregar."))
+                    return@launch
+                }
+                val product = Product(
+                    id = item.id,
+                    name = item.title,
+                    category = item.category,
+                    price = item.price,
+                    imageUrl = item.imageUrl,
+                    description = item.description,
+                    stock = 10,
+                )
+                repository.addToCart(userId, product, quantity = 1)
+                onAdded()
+            } catch (exception: Exception) {
+                _events.emit(
+                    CatalogEvent.Message(
+                        "No se pudo agregar al carrito: ${exception.localizedMessage ?: "inténtalo nuevamente."}",
+                    ),
+                )
+            }
         }
-    }
-
-    private fun getMockCatalogItems(): List<CatalogItem> {
-        return listOf(
-            CatalogItem(
-                id = "cat_01",
-                title = "Curso de Curaduría Virtual",
-                category = "Cursos",
-                price = 49.0,
-                imageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=500",
-                description = "Capacitación práctica con conservadores y expertos iberoamericanos.",
-                type = "Curso",
-            ),
-            CatalogItem(
-                id = "cat_02",
-                title = "El Arte Colonial en Iberoamérica",
-                category = "Libros",
-                price = 29.0,
-                imageUrl = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500",
-                description = "Libro digital sobre la evolución de la pintura y escultura colonial.",
-                type = "Libro",
-            ),
-            CatalogItem(
-                id = "cat_03",
-                title = "Kit de Restauración Documental",
-                category = "Materiales",
-                price = 35.0,
-                imageUrl = "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500",
-                description = "Materiales especializados para la conservación de manuscritos.",
-                type = "Material",
-            ),
-            CatalogItem(
-                id = "cat_04",
-                title = "Taller de Historia Precolombina",
-                category = "Cursos",
-                price = 39.0,
-                imageUrl = "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=500",
-                description = "Análisis de piezas cerámicas y orfebrería andina.",
-                type = "Curso",
-            ),
-            CatalogItem(
-                id = "cat_05",
-                title = "Catálogo Conmemorativo Soumaya 3D",
-                category = "Libros",
-                price = 22.0,
-                imageUrl = "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=500",
-                description = "Recopilación fotográfica de alta resolución en 3D.",
-                type = "Libro",
-            ),
-            CatalogItem(
-                id = "cat_06",
-                title = "Guía Técnica de Digitalización",
-                category = "Materiales",
-                price = 18.0,
-                imageUrl = "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500",
-                description = "Manual estandarizado para archivos y museos regionales.",
-                type = "Material",
-            ),
-        )
     }
 
     private fun emitMessage(message: String) {

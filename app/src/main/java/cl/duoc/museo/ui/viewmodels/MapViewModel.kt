@@ -7,11 +7,9 @@ import androidx.lifecycle.viewModelScope
 import cl.duoc.museo.data.local.AppDatabase
 import cl.duoc.museo.data.model.Museum
 import cl.duoc.museo.data.model.MuseumMapItem
-import cl.duoc.museo.data.remote.ApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
@@ -34,74 +32,31 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadMuseumsData() {
         viewModelScope.launch {
+            val chileanMuseums = getChileanMuseumList()
+            _allMuseums.value = chileanMuseums
+            _filteredMuseums.value = chileanMuseums
+            _selectedMuseum.value = chileanMuseums.firstOrNull()
+
             try {
-                val mockNetworkData = fetchFromNetworkWithLocalCacheFallback()
-                _allMuseums.value = mockNetworkData
-                _filteredMuseums.value = mockNetworkData
-                _selectedMuseum.value = mockNetworkData.firstOrNull()
-            } catch (e: Exception) {
-                Log.e("MapViewModel", "No se pudieron cargar los museos del mapa.", e)
-                val fallbackData = getMockMuseumList()
-                _allMuseums.value = fallbackData
-                _filteredMuseums.value = fallbackData
-                _selectedMuseum.value = fallbackData.firstOrNull()
+                db.museumDao().insertAll(chileanMuseums.map { museum ->
+                    Museum(
+                        id = museum.id,
+                        name = museum.title,
+                        country = museum.location,
+                        project = museum.category,
+                        description = "",
+                        classification = museum.category,
+                        imageUrl = museum.imageUrl,
+                        projectUrl = museum.virtualTourUrl,
+                        lat = museum.lat,
+                        lng = museum.lng,
+                    )
+                })
+            } catch (exception: Exception) {
+                Log.e("MapViewModel", "No se pudieron guardar los museos chilenos en la caché.", exception)
             }
         }
     }
-
-    private suspend fun fetchFromNetworkWithLocalCacheFallback(): List<MuseumMapItem> {
-        return try {
-            val response = ApiClient.apiService.getVirtualMuseums()
-            val museums = response.body()
-            if (response.isSuccessful && !museums.isNullOrEmpty()) {
-                db.museumDao().insertAll(museums)
-                museums.map(::toMapItem)
-            } else {
-                getCachedOrDemoMuseums()
-            }
-        } catch (e: Exception) {
-            Log.w("MapViewModel", "No se pudo actualizar el mapa desde el servicio; se usará la caché local.", e)
-            getCachedOrDemoMuseums()
-        }
-    }
-
-    private suspend fun getCachedOrDemoMuseums(): List<MuseumMapItem> {
-        val cachedMuseums = db.museumDao().getAllMuseums().first()
-        if (cachedMuseums.isNotEmpty()) return cachedMuseums.map(::toMapItem)
-
-        val demoMuseums = getMockMuseumList()
-        db.museumDao().insertAll(demoMuseums.map { museum ->
-            Museum(
-                id = museum.id,
-                name = museum.title,
-                country = museum.country,
-                project = museum.category,
-                description = "",
-                classification = museum.category,
-                imageUrl = museum.imageUrl,
-                projectUrl = museum.virtualTourUrl,
-                lat = museum.lat,
-                lng = museum.lng,
-            )
-        })
-        return demoMuseums
-    }
-
-    private fun toMapItem(museum: Museum) = MuseumMapItem(
-        id = museum.id,
-        title = museum.name,
-        location = museum.country,
-        country = museum.country.substringAfterLast(", ").trim(),
-        category = museum.classification,
-        lat = museum.lat,
-        lng = museum.lng,
-        virtualTourUrl = museum.projectUrl,
-        imageUrl = museum.imageUrl,
-        rating = 4.8,
-        reviewsCount = 120,
-        tag1 = museum.classification.ifBlank { "Historia" },
-        tag2 = "Virtual",
-    )
 
     fun applyFilter(filterName: String) {
         _activeFilter.value = filterName
@@ -109,17 +64,11 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
         val filtered = when (filterName) {
             "Todos" -> currentList
-            else -> when {
-                filterName.startsWith("country:") -> {
-                    val country = filterName.removePrefix("country:")
-                    currentList.filter { it.country.equals(country, ignoreCase = true) }
-                }
-                filterName.startsWith("project:") -> {
-                    val project = filterName.removePrefix("project:")
-                    currentList.filter { it.category.equals(project, ignoreCase = true) }
-                }
-                else -> currentList
-            }
+            else -> filterName
+                .takeIf { it.startsWith("project:") }
+                ?.removePrefix("project:")
+                ?.let { project -> currentList.filter { it.category.equals(project, ignoreCase = true) } }
+                ?: currentList
         }
         _filteredMuseums.value = filtered
         val selectedId = _selectedMuseum.value?.id
@@ -127,6 +76,9 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
             _selectedMuseum.value = filtered.firstOrNull()
         }
     }
+
+    fun availableProjects(): List<String> =
+        _allMuseums.value.map { it.category }.distinct().sorted()
 
     fun selectMuseum(museum: MuseumMapItem) {
         _selectedMuseum.value = museum
@@ -136,80 +88,80 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         _selectedMuseum.value = null
     }
 
-    private fun getMockMuseumList(): List<MuseumMapItem> {
+    private fun getChileanMuseumList(): List<MuseumMapItem> {
         return listOf(
             MuseumMapItem(
                 id = "mus_01",
-                title = "Museo Nacional\nde Arte Colonial",
-                location = "Bogotá, Colombia",
-                category = "Arte Colonial",
-                lat = 4.5960,
-                lng = -74.0750,
-                virtualTourUrl = "https://museocolonial.gov.co/tour-virtual-3d",
+                title = "Museo Arqueológico\nR. P. Gustavo Le Paige",
+                location = "San Pedro de Atacama, Chile",
+                category = "Arqueología",
+                lat = -22.9111,
+                lng = -68.2014,
+                virtualTourUrl = "https://www.museoarq.cl/",
                 imageUrl = "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=500",
                 rating = 4.8,
-                reviewsCount = 120,
-                tag1 = "Historia",
+                reviewsCount = 186,
+                tag1 = "Atacama",
                 tag2 = "Virtual",
-                country = "Colombia",
+                country = "Chile",
             ),
             MuseumMapItem(
                 id = "mus_02",
-                title = "Museo del Prado\nIberoamérica",
-                location = "Madrid, España",
-                category = "Bellas Artes",
-                lat = 40.4138,
-                lng = -3.6921,
-                virtualTourUrl = "https://museodelprado.es/recorrido-virtual",
+                title = "Museo Gabriela Mistral\nde Vicuña",
+                location = "Vicuña, Chile",
+                category = "Literatura",
+                lat = -30.0318,
+                lng = -70.7081,
+                virtualTourUrl = "https://www.mgmistral.gob.cl/",
                 imageUrl = "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=500",
-                rating = 4.9,
-                reviewsCount = 350,
-                tag1 = "Arte",
-                tag2 = "Virtual 3D",
-                country = "España",
+                rating = 4.7,
+                reviewsCount = 142,
+                tag1 = "Literatura",
+                tag2 = "Patrimonio",
+                country = "Chile",
             ),
             MuseumMapItem(
                 id = "mus_03",
-                title = "Museo Arqueológico\nLarco",
-                location = "Lima, Perú",
-                category = "Arqueología",
-                lat = -12.0722,
-                lng = -77.0708,
-                virtualTourUrl = "https://museolarco.org/tour-virtual",
+                title = "Museo de Historia Natural\nde Valparaíso",
+                location = "Valparaíso, Chile",
+                category = "Ciencias Naturales",
+                lat = -33.0451,
+                lng = -71.6197,
+                virtualTourUrl = "https://www.mhnv.gob.cl/",
                 imageUrl = "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=500",
-                rating = 4.7,
-                reviewsCount = 210,
-                tag1 = "Precolombino",
+                rating = 4.6,
+                reviewsCount = 104,
+                tag1 = "Naturaleza",
                 tag2 = "Virtual",
-                country = "Perú",
+                country = "Chile",
             ),
             MuseumMapItem(
                 id = "mus_04",
-                title = "Museo Soumaya\nPlaza Carso",
-                location = "Ciudad de México, México",
-                category = "Arte Moderno",
-                lat = 19.4407,
-                lng = -99.2047,
-                virtualTourUrl = "https://museosoumaya.org/3d-experience",
+                title = "Museo Nacional\nde Bellas Artes",
+                location = "Santiago, Chile",
+                category = "Bellas Artes",
+                lat = -33.4352,
+                lng = -70.6436,
+                virtualTourUrl = "https://www.mnba.gob.cl/",
                 imageUrl = "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=500",
                 rating = 4.8,
-                reviewsCount = 185,
-                tag1 = "Escultura",
+                reviewsCount = 265,
+                tag1 = "Arte",
                 tag2 = "Virtual",
-                country = "México",
+                country = "Chile",
             ),
             MuseumMapItem(
                 id = "mus_05",
-                title = "Museo Histórico\nNacional",
-                location = "Santiago, Chile",
+                title = "Museo Regional\nde Magallanes",
+                location = "Punta Arenas, Chile",
                 category = "Historia",
-                lat = -33.4372,
-                lng = -70.6506,
-                virtualTourUrl = "https://mhn.gob.cl/recorrido-virtual",
+                lat = -53.1638,
+                lng = -70.9062,
+                virtualTourUrl = "https://www.museodemagallanes.gob.cl/",
                 imageUrl = "https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=500",
-                rating = 4.6,
-                reviewsCount = 98,
-                tag1 = "Patrimonio",
+                rating = 4.7,
+                reviewsCount = 91,
+                tag1 = "Magallanes",
                 tag2 = "Virtual",
                 country = "Chile",
             ),

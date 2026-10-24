@@ -1,8 +1,13 @@
 package cl.duoc.museo.utils
 
+import com.google.gson.JsonParser
+import java.net.URI
+import java.net.URISyntaxException
+
 enum class ScannedContentKind {
     MUSEUM,
     PRODUCT,
+    VIDEO,
 }
 
 data class ScannedContent(
@@ -12,6 +17,7 @@ data class ScannedContent(
     val title: String,
     val author: String,
     val description: String,
+    val externalUrl: String? = null,
 )
 
 object ScanCodeResolver {
@@ -121,6 +127,8 @@ object ScanCodeResolver {
     }
 
     fun resolve(rawCode: String): ScannedContent? {
+        resolveVideo(rawCode)?.let { return it }
+
         val payload = rawCode.trim()
             .substringBefore('#')
             .substringBefore('?')
@@ -128,5 +136,42 @@ object ScanCodeResolver {
             .trim()
             .uppercase()
         return contentByCode[payload]
+    }
+
+    private fun resolveVideo(rawCode: String): ScannedContent? {
+        val json = try {
+            JsonParser().parse(rawCode).takeIf { it.isJsonObject }?.asJsonObject
+        } catch (_: RuntimeException) {
+            null
+        } ?: return null
+
+        fun stringValue(name: String): String? =
+            json.get(name)
+                ?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }
+                ?.asString
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+
+        val title = stringValue("titulo") ?: return null
+        val description = stringValue("descripcion") ?: return null
+        val url = stringValue("url") ?: return null
+        val parsedUrl = try {
+            URI(url)
+        } catch (_: URISyntaxException) {
+            return null
+        }
+        if (parsedUrl.scheme?.lowercase() !in setOf("http", "https") || parsedUrl.host.isNullOrBlank()) {
+            return null
+        }
+
+        return ScannedContent(
+            id = url,
+            kind = ScannedContentKind.VIDEO,
+            type = "Video",
+            title = title,
+            author = "YouTube",
+            description = description,
+            externalUrl = url,
+        )
     }
 }

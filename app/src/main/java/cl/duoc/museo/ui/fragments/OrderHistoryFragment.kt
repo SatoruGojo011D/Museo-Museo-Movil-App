@@ -19,6 +19,7 @@ import cl.duoc.museo.data.model.Role
 import cl.duoc.museo.databinding.FragmentOrderHistoryBinding
 import cl.duoc.museo.ui.adapters.OrderHistoryAdapter
 import cl.duoc.museo.ui.viewmodels.OrderHistoryViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
 class OrderHistoryFragment : Fragment() {
@@ -59,11 +60,21 @@ class OrderHistoryFragment : Fragment() {
                     showAdminStatusUpdateDialog(order)
                 } else {
                     val formattedId = "#2024-${order.id.toString().padStart(5, '0')}"
-                    Toast.makeText(
-                        requireContext(),
-                        "Solicitud $formattedId - Estado: ${order.status}",
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Solicitud $formattedId")
+                        .setMessage(
+                            getString(
+                                R.string.order_history_detail_format,
+                                order.date,
+                                order.status,
+                                order.productCount,
+                                order.country,
+                                order.shippingType,
+                                String.format(java.util.Locale.ROOT, "%.2f", order.totalAmount),
+                            ),
+                        )
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
                 }
             },
         )

@@ -12,6 +12,9 @@ import androidx.recyclerview.widget.RecyclerView
 import cl.duoc.museo.R
 import cl.duoc.museo.data.model.CatalogItem
 import cl.duoc.museo.databinding.ItemCatalogProductBinding
+import cl.duoc.museo.utils.MoneyFormatter
+import cl.duoc.museo.utils.ViewAnimations
+import com.bumptech.glide.Glide
 
 class CatalogAdapter(
     private val onItemClick: (CatalogItem) -> Unit,
@@ -39,17 +42,24 @@ class CatalogAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: CatalogItem) {
+            ViewAnimations.installTapFeedback(binding.root)
             binding.tvProductTitle.text = item.title
             binding.tvProductCategory.text = item.category
-            binding.tvProductPrice.text = "US$ ${item.price.toInt()}"
+            binding.tvProductPrice.text = MoneyFormatter.formatUsd(item.price)
 
             val imageRes = when (item.category) {
                 "Cursos" -> R.drawable.ic_catalog
-                "Libros" -> R.drawable.bg_museum_interior
+                "Libros" -> R.drawable.ic_book
                 "Materiales" -> R.drawable.ic_museum
-                else -> R.drawable.bg_museum_interior
+                else -> R.drawable.ic_catalog
             }
-            binding.imgProductThumb.setImageResource(imageRes)
+            binding.imgProductThumb.contentDescription = item.title
+            Glide.with(binding.imgProductThumb)
+                .load(item.imageUrl.takeIf { it.isNotBlank() })
+                .placeholder(imageRes)
+                .error(imageRes)
+                .centerCrop()
+                .into(binding.imgProductThumb)
             binding.btnAddToCart.visibility = if (isAdministrator()) View.GONE else View.VISIBLE
 
             binding.cardProduct.setOnClickListener { onItemClick(item) }

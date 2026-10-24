@@ -146,6 +146,9 @@
         <action
             android:id="@+id/action_catalogFragment_to_productDetailFragment"
             app:destination="@id/productDetailFragment" />
+        <action
+            android:id="@+id/action_catalogFragment_to_cartFragment"
+            app:destination="@id/cartFragment" />
     </fragment>
 
     <!-- Pantalla 10: Detalle Producto -->
@@ -182,7 +185,16 @@
         <action
             android:id="@+id/action_cartFragment_to_historyFragment"
             app:destination="@id/historyFragment" />
+        <action
+            android:id="@+id/action_cartFragment_to_receiptFragment"
+            app:destination="@id/receiptFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/receiptFragment"
+        android:name="cl.duoc.museo.ui.fragments.ReceiptFragment"
+        android:label="Boleta"
+        tools:layout="@layout/fragment_receipt" />
 
     <!-- Pantalla 13: Historial -->
     <fragment

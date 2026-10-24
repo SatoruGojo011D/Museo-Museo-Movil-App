@@ -17,6 +17,7 @@ data class QrResultUiState(
     val description: String = "",
     val targetId: String = "",
     val isMuseum: Boolean = false,
+    val externalUrl: String? = null,
     val errorMessage: String = "",
 )
 
@@ -46,6 +47,7 @@ class QrResultViewModel(application: Application) : AndroidViewModel(application
             description = content.description,
             targetId = content.id,
             isMuseum = content.kind == ScannedContentKind.MUSEUM,
+            externalUrl = content.externalUrl,
         )
     }
 }

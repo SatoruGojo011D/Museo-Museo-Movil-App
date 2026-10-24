@@ -9,6 +9,7 @@ import androidx.navigation.ui.setupWithNavController
 import cl.duoc.museo.data.model.Role
 import cl.duoc.museo.databinding.ActivityMainBinding
 import cl.duoc.museo.utils.SessionManager
+import cl.duoc.museo.utils.ViewAnimations
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,6 +38,8 @@ class MainActivity : AppCompatActivity() {
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             updateNavigationForRole()
+            ViewAnimations.installTapFeedback(binding.root)
+            ViewAnimations.animateScreenEntry(binding.navHostFragment)
             if (topLevelDestinations.contains(destination.id)) {
                 binding.bottomNavigationView.visibility = View.VISIBLE
             } else {

@@ -4,13 +4,16 @@ import android.util.Log
 import cl.duoc.museo.data.local.AppDatabase
 import cl.duoc.museo.data.model.CartItem
 import cl.duoc.museo.data.model.CatalogItem
+import cl.duoc.museo.data.model.CheckoutReceipt
 import cl.duoc.museo.data.model.Favorite
 import cl.duoc.museo.data.model.Museum
 import cl.duoc.museo.data.model.NotificationItem
 import cl.duoc.museo.data.model.Order
 import cl.duoc.museo.data.model.Product
+import cl.duoc.museo.data.model.ReceiptLine
 import cl.duoc.museo.data.model.User
 import cl.duoc.museo.data.remote.ApiClient
+import cl.duoc.museo.utils.TaxCalculator
 import androidx.room.withTransaction
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -147,7 +150,7 @@ class MuseumRepository(private val db: AppDatabase) {
         userId: Long,
         country: String,
         shippingType: String,
-    ): Double? = db.withTransaction {
+    ): CheckoutReceipt? = db.withTransaction {
         val cartList = db.cartDao().getCartItemsForUser(userId).first()
         if (cartList.isEmpty()) return@withTransaction null
 
@@ -161,12 +164,14 @@ class MuseumRepository(private val db: AppDatabase) {
             else -> 25.0
         }
         val totalCount = cartList.sumOf { it.quantity }
-        val totalAmount = subtotal + shippingCost
+        val vat = TaxCalculator.calculateVat(subtotal)
+        val totalAmount = subtotal + vat + shippingCost
+        val orderDate = SimpleDateFormat("d MMM yyyy", Locale.forLanguageTag("es-CL")).format(Date())
 
-        db.orderDao().insertOrder(
+        val orderId = db.orderDao().insertOrder(
             Order(
                 userId = userId,
-                date = SimpleDateFormat("d MMM yyyy", Locale.forLanguageTag("es-CL")).format(Date()),
+                date = orderDate,
                 productCount = totalCount,
                 totalAmount = totalAmount,
                 status = "Pendiente",
@@ -185,7 +190,24 @@ class MuseumRepository(private val db: AppDatabase) {
             ),
         )
 
-        totalAmount
+        CheckoutReceipt(
+            orderId = orderId,
+            date = orderDate,
+            items = cartList.map { item ->
+                ReceiptLine(
+                    name = item.productName,
+                    quantity = item.quantity,
+                    unitPrice = item.price,
+                    lineTotal = item.price * item.quantity,
+                )
+            },
+            subtotal = subtotal,
+            vat = vat,
+            shippingCost = shippingCost,
+            country = country,
+            shippingType = shippingType,
+            total = totalAmount,
+        )
     }
 
     // --- NOTIFICATIONS ---
@@ -211,5 +233,9 @@ class MuseumRepository(private val db: AppDatabase) {
 
     suspend fun getUserByEmail(email: String): User? {
         return db.userDao().getUserByEmail(email)
+    }
+
+    suspend fun getUserById(userId: Long): User? {
+        return db.userDao().getUserById(userId)
     }
 }

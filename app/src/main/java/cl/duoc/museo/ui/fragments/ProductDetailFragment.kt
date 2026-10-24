@@ -20,6 +20,8 @@ import cl.duoc.museo.R
 import cl.duoc.museo.databinding.FragmentProductDetailBinding
 import cl.duoc.museo.ui.viewmodels.CartEvent
 import cl.duoc.museo.ui.viewmodels.ProductDetailViewModel
+import cl.duoc.museo.utils.MoneyFormatter
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
 class ProductDetailFragment : Fragment() {
@@ -80,14 +82,32 @@ class ProductDetailFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.uiState.collect { state ->
+                        binding.progressProduct.visibility =
+                            if (state.isLoading) View.VISIBLE else View.GONE
+                        binding.tvProductError.visibility =
+                            if (state.errorMessage != null) View.VISIBLE else View.GONE
+                        binding.tvProductError.text = state.errorMessage
+                        binding.groupProductDetails.visibility =
+                            if (state.product != null) View.VISIBLE else View.GONE
+                        binding.btnBack.visibility = View.VISIBLE
+
                         val product = state.product ?: return@collect
 
                         binding.tvProductTitle.text = product.name
-                        binding.tvPrice.text = "US$ " + product.price.toInt().toString()
+                        binding.tvProductCategory.text = product.category
+                        binding.tvPrice.text = MoneyFormatter.formatUsd(product.price)
                         binding.tvDescription.text = product.description
-                        binding.tvRatingText.text = "${state.rating} (${state.reviewsCount} reseñas)"
+                        binding.imgProductHero.contentDescription = product.name
+                        Glide.with(binding.imgProductHero)
+                            .load(product.imageUrl.takeIf { it.isNotBlank() })
+                            .placeholder(R.drawable.bg_museum_interior)
+                            .error(R.drawable.bg_museum_interior)
+                            .centerCrop()
+                            .into(binding.imgProductHero)
                         binding.tvQuantity.text = state.quantity.toString()
                         binding.btnAddToCart.text = state.buttonText
+                        binding.btnAddToCart.isEnabled = state.isStockAvailable
+                        binding.btnFavoriteHeader.isEnabled = true
 
                         // Course vs. Physical Product Adaptation
                         if (state.isCourse) {

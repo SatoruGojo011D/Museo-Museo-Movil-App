@@ -5,7 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import cl.duoc.museo.data.local.AppDatabase
 import cl.duoc.museo.data.model.CartItem
+import cl.duoc.museo.data.model.CheckoutReceipt
 import cl.duoc.museo.data.repository.MuseumRepository
+import cl.duoc.museo.utils.TaxCalculator
 import cl.duoc.museo.utils.SessionManager
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 sealed class CheckoutEvent {
-    data class Success(val orderTotal: Double) : CheckoutEvent()
+    data class Success(val receipt: CheckoutReceipt) : CheckoutEvent()
     data class Error(val message: String) : CheckoutEvent()
 }
 
@@ -32,6 +34,9 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _subtotal = MutableStateFlow(0.0)
     val subtotal: StateFlow<Double> = _subtotal.asStateFlow()
+
+    private val _vat = MutableStateFlow(0.0)
+    val vat: StateFlow<Double> = _vat.asStateFlow()
 
     private val _shippingCost = MutableStateFlow(12.0)
     val shippingCost: StateFlow<Double> = _shippingCost.asStateFlow()
@@ -77,6 +82,8 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
     private fun recalculateTotals(items: List<CartItem>) {
         val sub = items.sumOf { it.price * it.quantity }
         _subtotal.value = sub
+        val vatAmount = TaxCalculator.calculateVat(sub)
+        _vat.value = vatAmount
 
         val country = _selectedCountry.value
         val isNational = country.equals("Chile", ignoreCase = true)
@@ -90,7 +97,7 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         _shippingCost.value = if (items.isEmpty()) 0.0 else cost
-        _totalAmount.value = if (items.isEmpty()) 0.0 else (sub + _shippingCost.value)
+        _totalAmount.value = if (items.isEmpty()) 0.0 else (sub + vatAmount + _shippingCost.value)
     }
 
     fun incrementQuantity(item: CartItem) {
@@ -130,9 +137,9 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                val orderTotal = repository.checkout(userId, country, shippingType)
-                if (orderTotal != null) {
-                    _checkoutEvent.emit(CheckoutEvent.Success(orderTotal))
+                val receipt = repository.checkout(userId, country, shippingType)
+                if (receipt != null) {
+                    _checkoutEvent.emit(CheckoutEvent.Success(receipt))
                 } else {
                     _checkoutEvent.emit(CheckoutEvent.Error("No se pudo procesar la solicitud."))
                 }

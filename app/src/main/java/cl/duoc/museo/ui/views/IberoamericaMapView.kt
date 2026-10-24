@@ -4,13 +4,16 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.view.ScaleGestureDetector
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import androidx.core.content.ContextCompat
 import cl.duoc.museo.R
 import cl.duoc.museo.data.model.MuseumMapItem
+import kotlin.math.abs
 import kotlin.math.hypot
 
 class IberoamericaMapView @JvmOverloads constructor(
@@ -48,6 +51,42 @@ class IberoamericaMapView @JvmOverloads constructor(
     }
     private val museums = mutableListOf<MuseumMapItem>()
     private var selectedMuseumId: String? = null
+    private var scale = 1f
+    private var translationX = 0f
+    private var translationY = 0f
+    private var lastTouchX = 0f
+    private var lastTouchY = 0f
+    private var downTouchX = 0f
+    private var downTouchY = 0f
+    private var touchMoved = false
+    private var scaling = false
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+    private val scaleDetector = ScaleGestureDetector(
+        context,
+        object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+                scaling = true
+                return true
+            }
+
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                val oldScale = scale
+                val newScale = (oldScale * detector.scaleFactor).coerceIn(1f, 5f)
+                val factor = newScale / oldScale
+                val focusX = detector.focusX - width / 2f
+                val focusY = detector.focusY - height / 2f
+                translationX = factor * translationX + (1f - factor) * focusX
+                translationY = factor * translationY + (1f - factor) * focusY
+                scale = newScale
+                invalidate()
+                return true
+            }
+
+            override fun onScaleEnd(detector: ScaleGestureDetector) {
+                scaling = false
+            }
+        },
+    )
 
     var onMuseumSelected: ((String) -> Unit)? = null
 
@@ -61,6 +100,9 @@ class IberoamericaMapView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), seaPaint)
+        val saveCount = canvas.save()
+        canvas.translate(translationX, translationY)
+        canvas.scale(scale, scale, width / 2f, height / 2f)
         drawGrid(canvas)
         drawLand(canvas, listOf(
             -118.0 to 53.0,
@@ -101,6 +143,7 @@ class IberoamericaMapView @JvmOverloads constructor(
         ))
         canvas.drawText("IBEROAMÉRICA", width * 0.49f, height * 0.48f, labelPaint)
         drawMarkers(canvas)
+        canvas.restoreToCount(saveCount)
     }
 
     private fun drawGrid(canvas: Canvas) {
@@ -148,13 +191,49 @@ class IberoamericaMapView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action != MotionEvent.ACTION_UP) return true
+        scaleDetector.onTouchEvent(event)
 
-        val hitRadius = 36f * resources.displayMetrics.density
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                lastTouchX = event.x
+                lastTouchY = event.y
+                downTouchX = event.x
+                downTouchY = event.y
+                touchMoved = false
+            }
+            MotionEvent.ACTION_POINTER_DOWN -> touchMoved = true
+            MotionEvent.ACTION_MOVE -> {
+                if (event.pointerCount == 1 && !scaling) {
+                    val dx = event.x - lastTouchX
+                    val dy = event.y - lastTouchY
+                    if (abs(event.x - downTouchX) > touchSlop || abs(event.y - downTouchY) > touchSlop) {
+                        touchMoved = true
+                    }
+                    if (touchMoved) {
+                        translationX += dx
+                        translationY += dy
+                        invalidate()
+                    }
+                }
+                lastTouchX = event.x
+                lastTouchY = event.y
+            }
+            MotionEvent.ACTION_UP -> {
+                if (!touchMoved && !scaling) selectMuseumAt(event.x, event.y)
+            }
+            MotionEvent.ACTION_CANCEL -> touchMoved = true
+        }
+        return true
+    }
+
+    private fun selectMuseumAt(touchX: Float, touchY: Float) {
+        val mapX = (touchX - translationX - width / 2f) / scale + width / 2f
+        val mapY = (touchY - translationY - height / 2f) / scale + height / 2f
+        val hitRadius = 36f * resources.displayMetrics.density / scale
         val nearest = museums
             .map { museum ->
                 val (x, y) = project(museum.lng, museum.lat)
-                museum to hypot((event.x - x).toDouble(), (event.y - y).toDouble())
+                museum to hypot((mapX - x).toDouble(), (mapY - y).toDouble())
             }
             .filter { it.second <= hitRadius }
             .minByOrNull { it.second }
@@ -165,7 +244,6 @@ class IberoamericaMapView @JvmOverloads constructor(
             invalidate()
             performClick()
         }
-        return true
     }
 
     override fun performClick(): Boolean {

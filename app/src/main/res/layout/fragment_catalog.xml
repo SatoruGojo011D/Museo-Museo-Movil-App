@@ -35,6 +35,20 @@
         app:layout_constraintBottom_toBottomOf="@id/tvCatalogTitle"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ImageView
+        android:id="@+id/btnOpenCart"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginEnd="12dp"
+        android:padding="7dp"
+        android:src="@drawable/ic_cart"
+        app:tint="@color/dark_blue"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/cart_title"
+        app:layout_constraintTop_toTopOf="@id/tvCatalogTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvCatalogTitle"
+        app:layout_constraintEnd_toStartOf="@id/btnFilterOptions" />
+
     <!-- 2. Search Bar Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardSearchBar"

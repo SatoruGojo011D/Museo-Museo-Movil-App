@@ -67,6 +67,12 @@ dependencies {
     // Lector QR (ZXing)
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
+    // Carga de imágenes del catálogo
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // OpenStreetMap
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

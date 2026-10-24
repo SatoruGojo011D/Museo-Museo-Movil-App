@@ -2,11 +2,15 @@ package cl.duoc.museo.ui.fragments
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -59,6 +63,10 @@ class QrResultFragment : Fragment() {
         binding.btnViewDetail.setOnClickListener {
             val currentState = viewModel.uiState.value
             if (!currentState.isValid) return@setOnClickListener
+            currentState.externalUrl?.let { url ->
+                openExternalUrl(url)
+                return@setOnClickListener
+            }
             val targetId = currentState.targetId
 
             if (currentState.isMuseum) {
@@ -81,6 +89,22 @@ class QrResultFragment : Fragment() {
                 )
             }
         }
+
+        binding.tvVideoUrl.setOnClickListener {
+            viewModel.uiState.value.externalUrl?.let(::openExternalUrl)
+        }
+    }
+
+    private fun openExternalUrl(url: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.qr_result_no_browser),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
     }
 
     private fun observeViewModel() {
@@ -96,6 +120,19 @@ class QrResultFragment : Fragment() {
                         binding.tvCategoryBadge.text = state.type
                         binding.tvAuthorLabel.text = state.author
                         binding.tvItemDescription.text = state.description
+                        binding.tvVideoUrl.visibility = if (state.externalUrl.isNullOrBlank()) {
+                            View.GONE
+                        } else {
+                            View.VISIBLE
+                        }
+                        binding.tvVideoUrl.text = state.externalUrl.orEmpty()
+                        binding.btnViewDetail.setText(
+                            if (state.externalUrl.isNullOrBlank()) {
+                                R.string.btn_view_detail
+                            } else {
+                                R.string.qr_result_open_video
+                            },
+                        )
                     } else {
                         binding.layoutSuccessState.visibility = View.GONE
                         binding.layoutErrorGroup.visibility = View.VISIBLE

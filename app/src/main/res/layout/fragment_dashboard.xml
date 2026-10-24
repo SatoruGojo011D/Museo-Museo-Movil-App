@@ -282,12 +282,13 @@
 
                         <TextView
                             android:id="@+id/tvCardVirtualTitle"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="@string/dashboard_quick_requests"
+                            android:text="@string/dashboard_quick_history"
                             android:textColor="@color/text_primary"
-                            android:textSize="12sp"
+                            android:textSize="10sp"
+                            android:maxLines="2"
                             android:gravity="center" />
                     </LinearLayout>
 

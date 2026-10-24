@@ -25,6 +25,31 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <ProgressBar
+            android:id="@+id/progressProduct"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminateTint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="@id/imgProductHero"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/imgProductHero" />
+
+        <TextView
+            android:id="@+id/tvProductError"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="24dp"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imgProductHero" />
+
         <!-- Overlaid Controls: Back Button Top Left -->
         <ImageView
             android:id="@+id/btnBack"
@@ -73,6 +98,24 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <TextView
+            android:id="@+id/tvProductCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_tag_teal_rounded"
+            android:paddingStart="10dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp"
+            android:textColor="@color/dark_blue"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProductTitle"
+            tools:text="Libros" />
+
         <!-- Price -->
         <TextView
             android:id="@+id/tvPrice"
@@ -85,7 +128,7 @@
             android:textSize="24sp"
             android:textStyle="bold"
             tools:text="US$ 35"
-            app:layout_constraintTop_toBottomOf="@id/tvProductTitle"
+            app:layout_constraintTop_toBottomOf="@id/tvProductCategory"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -99,6 +142,7 @@
             android:layout_marginEnd="24dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/tvPrice"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -153,7 +197,7 @@
             android:textSize="14sp"
             android:lineSpacingMultiplier="1.2"
             tools:text="Un recorrido completo por el desarrollo del arte en Iberoamérica, con análisis de obras, contextos históricos y perspectivas contemporáneas."
-            app:layout_constraintTop_toBottomOf="@id/layoutRating"
+            app:layout_constraintTop_toBottomOf="@id/tvPrice"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -313,6 +357,13 @@
             app:layout_constraintTop_toBottomOf="@id/layoutQuantityAvailability"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
+
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/groupProductDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:constraint_referenced_ids="imgProductHero,tvProductTitle,tvProductCategory,tvPrice,layoutRating,tvDescription,layoutQuantityAvailability,btnAddToCart,btnFavoriteHeader" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

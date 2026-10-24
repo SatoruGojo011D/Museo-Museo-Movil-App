@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import cl.duoc.museo.R
 import cl.duoc.museo.data.model.Favorite
 import cl.duoc.museo.databinding.ItemFavoriteMuseumBinding
+import cl.duoc.museo.utils.ViewAnimations
 
 class FavoritesAdapter(
     private val onItemClick: (Favorite) -> Unit,
@@ -33,6 +34,7 @@ class FavoritesAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Favorite) {
+            ViewAnimations.installTapFeedback(binding.root)
             binding.tvMuseumName.text = item.museumName
             binding.tvMuseumLocation.text = item.museumCountry
 
