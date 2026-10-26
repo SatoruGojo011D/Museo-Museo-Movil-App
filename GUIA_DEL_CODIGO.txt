@@ -1,7 +1,7 @@
 GUÍA DEL CÓDIGO — MUSEO DE LOS MUSEOS
 =====================================
 
-Alcance
+ALCANCE
 -------
 Esta guía describe los archivos propios presentes en el proyecto y el comportamiento
 que implementan actualmente. No convierte en funcionalidad terminada todo lo que
