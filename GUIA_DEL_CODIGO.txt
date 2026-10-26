@@ -765,6 +765,6 @@ Cobertura del inventario
 La guía recorre cada fuente Kotlin, test, script/configuración versionada o
 propia enumerada en el proyecto y cada XML de manifest, navegación, menú, layout,
 valores, drawable, icono adaptativo y reglas Android. Los WebP repetidos solo
-varían por resolución/forma del mismo launcher y se describen agrupados. Se
+varían por resolución u forma del mismo launcher y se describen agrupados. Se
 excluyen intencionalmente .idea, .gradle, .kotlin, build y otros artefactos o
 dependencias generadas.
